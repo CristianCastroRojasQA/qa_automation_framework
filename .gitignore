@@ -1,8 +1,19 @@
-
-# Playwright
+# --- DEPENDENCIES ---
 node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
+
+# --- CONFIG & SECRETS ---
+.env
+.env.*
+!.env.example
+
+# --- PLAYWRIGHT REPORTS & CACHE ---
+test-results/
+playwright-report/
+blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# --- SYSTEM & LOGS ---
+*.log
+.DS_Store
+Thumbs.db
