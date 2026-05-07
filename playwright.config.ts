@@ -27,7 +27,7 @@ const sharedProjectConfig = {
 
 export default defineConfig({
   testDir: "./modules", // Directorio raíz donde residen las pruebas
-  fullyParallel: true, // Ejecuta pruebas en paralelo para ahorrar tiempo
+  fullyParallel: false, // Ejecuta pruebas en paralelo para ahorrar tiempo
   forbidOnly: !!process.env.CI, // Evita subir pruebas con .only al servidor (CI)
   retries: process.env.CI ? 2 : 0, // Reintenta fallos solo en CI (2 veces)
   workers: process.env.CI ? 1 : undefined, // Limita hilos en CI para estabilidad
@@ -51,7 +51,7 @@ export default defineConfig({
         ...sharedProjectConfig,
         baseURL: settings.paystudioUrl, // URL cargada desde tu archivo de settings/env
       },
-      testMatch: "**/paystudio/tests/*.spec.ts", // Filtra solo pruebas de PayStudio
+      testMatch: "**/paystudio/tests/**/*.spec.ts", // Filtra solo pruebas de PayStudio
     },
     {
       name: "Portal de Comercio",
@@ -59,7 +59,7 @@ export default defineConfig({
         ...sharedProjectConfig,
         baseURL: settings.portalUrl, // URL específica para el Portal
       },
-      testMatch: "**/portalcomercio/tests/*.spec.ts", // Filtra solo pruebas del Portal
+      testMatch: "**/portalcomercio/tests/**/*.spec.ts", // Filtra solo pruebas del Portal
     },
   ],
 });
