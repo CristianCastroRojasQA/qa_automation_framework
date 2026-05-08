@@ -14,6 +14,6 @@ blob-report/
 /playwright/.auth/
 
 # --- SYSTEM & LOGS ---
-*.log
 .DS_Store
 Thumbs.db
+logs/
