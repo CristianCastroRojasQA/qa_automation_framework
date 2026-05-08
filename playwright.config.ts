@@ -1,65 +1,90 @@
 import { defineConfig } from "@playwright/test";
 import { settings } from "./config/settings";
 
-// ==============================================================================
-// CONFIGURACIONES COMPARTIDAS (DRY - Don't Repeat Yourself)
-// ==============================================================================
-
 /**
- * Opciones de lanzamiento del navegador
+ * Opciones compartidas de lanzamiento utilizadas por todos los proyectos.
  */
 const sharedLaunchOptions = {
-  args: ["--start-maximized", "--lang=es"], // Inicia en pantalla completa y lenguaje español
+  // Inicia el navegador maximizado y configurado en español.
+  args: ["--start-maximized", "--lang=es"],
 };
 
 /**
- * Configuración base para los proyectos
+ * Configuración base reutilizable para los proyectos del framework.
+ *
+ * Centralizar esta configuración:
+ * - evita duplicación
+ * - facilita mantenimiento
+ * - mantiene consistencia entre módulos
  */
 const sharedProjectConfig = {
-  channel: "chromium", // Navegador por defecto
-  viewport: null, // Desactiva el tamaño fijo para usar el máximo de la ventana
+  // Navegador principal utilizado por el framework
+  channel: "chromium",
+  // Desactiva viewport fijo para usar dimensiones reales de la ventana.
+  viewport: null,
   launchOptions: sharedLaunchOptions,
 };
 
-// ==============================================================================
-// CONFIGURACIÓN PRINCIPAL DE PLAYWRIGHT
-// ==============================================================================
-
+/**
+ * Configuración principal de Playwright.
+ * Define:
+ * - comportamiento global
+ * - reporters
+ * - ejecución
+ * - proyectos
+ * - configuración del navegador
+ */
 export default defineConfig({
-  testDir: "./modules", // Directorio raíz donde residen las pruebas
-  fullyParallel: false, // Ejecuta pruebas en paralelo para ahorrar tiempo
-  forbidOnly: !!process.env.CI, // Evita subir pruebas con .only al servidor (CI)
-  retries: process.env.CI ? 2 : 0, // Reintenta fallos solo en CI (2 veces)
-  workers: process.env.CI ? 1 : undefined, // Limita hilos en CI para estabilidad
-  reporter: "html", // Genera reporte visual en HTML
+  // Directorio raíz de pruebas automatizadas
+  testDir: "./modules",
+  // Ejecuta pruebas secuencialmente para evitar conflictos entre ambientes.
+  fullyParallel: false,
+  // Previene commits accidentales con pruebas marcadas como .only
+  forbidOnly: !!process.env.CI,
+  // Reintenta pruebas fallidas únicamente en entorno CI.
+  retries: process.env.CI ? 2 : 0,
+  // Limita workers en CI para mejorar estabilidad.
+  workers: process.env.CI ? 1 : undefined,
+  // Genera reporte visual HTML posterior a la ejecución.
+  reporter: "html",
 
-  /* --- Configuración Global de Ejecución --- */
+  // Configuración global de ejecución
   use: {
-    trace: "on-first-retry", // Graba trazas solo cuando una prueba falla al primer intento
-    video: "retain-on-failure", // Guarda video solo si la prueba falla
-    headless: false, // Muestra el navegador durante la ejecución
-    locale: "es-ES", // Regionalización en español
-    timezoneId: "America/Bogota", // Zona horaria de referencia
-    ignoreHTTPSErrors: true, // Ignora problemas de certificados en entornos CERT
+    // Captura trazas únicamente cuando ocurre un retry.
+    trace: "on-first-retry",
+    // Conserva video únicamente cuando la prueba falla.
+    video: "retain-on-failure",
+    // Ejecuta pruebas en modo visual.
+    headless: false,
+    // Configuración regional en español.
+    locale: "es-ES",
+    // Zona horaria estándar del framework.
+    timezoneId: "America/Bogota",
+    // Ignora errores HTTPS en ambientes internos o certificados no válidos.
+    ignoreHTTPSErrors: true,
   },
 
-  /* --- Definición de Proyectos (Módulos del Sistema) --- */
+  // Definición de proyectos del framework
   projects: [
     {
       name: "PayStudio",
       use: {
         ...sharedProjectConfig,
-        baseURL: settings.paystudioUrl, // URL cargada desde tu archivo de settings/env
+        // URL principal obtenida dinámicamente desde el sistema de configuración.
+        baseURL: settings.paystudioUrl,
       },
-      testMatch: "**/paystudio/tests/**/*.spec.ts", // Filtra solo pruebas de PayStudio
+      // Ejecuta únicamente pruebas asociadas al módulo PayStudio.
+      testMatch: "**/paystudio/tests/**/*.spec.ts",
     },
     {
       name: "Portal de Comercio",
       use: {
         ...sharedProjectConfig,
-        baseURL: settings.portalUrl, // URL específica para el Portal
+        // URL principal del Portal de Comercio.
+        baseURL: settings.portalUrl,
       },
-      testMatch: "**/portalcomercio/tests/**/*.spec.ts", // Filtra solo pruebas del Portal
+      // Ejecuta únicamente pruebas asociadas al Portal de Comercio.
+      testMatch: "**/portalcomercio/tests/**/*.spec.ts",
     },
   ],
 });

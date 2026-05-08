@@ -10,6 +10,12 @@
   "type": "commonjs",
   "devDependencies": {
     "@playwright/test": "^1.59.1",
+    "@types/dotenv": "^6.1.1",
     "@types/node": "^25.6.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }
