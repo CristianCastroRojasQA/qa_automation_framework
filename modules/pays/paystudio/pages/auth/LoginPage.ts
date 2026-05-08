@@ -1,8 +1,14 @@
 import { Locator, Page } from "@playwright/test";
+import { logger } from "../../../../../utils/logger";
 
 /**
- * Representa la página de inicio de sesión de PayStudio.
- * Proporciona métodos para interactuar con los inputs de credenciales y mensajes de error.
+ * Representa la página de autenticación de PayStudio.
+ * Implementa el patrón Page Object Model (POM)
+ * para encapsular la interacción con:
+ * - campos de login
+ * - botones
+ * - validaciones
+ * - mensajes de error
  */
 export class LoginPage {
   private readonly page: Page;
@@ -15,10 +21,15 @@ export class LoginPage {
   private readonly errorMessageUsernameInput: Locator;
   private readonly errorMessagePasswordInput: Locator;
 
+  /**
+   * Inicializa los selectores de la página de login.
+   * Nota: Se utilizan selectores basados en ID dinámicos de ASP.NET.
+   * @param page - Instancia de la página de Playwright.
+   */
   constructor(page: Page) {
     this.page = page;
 
-    // Nota: Se utilizan selectores basados en ID de ASP.NET
+    // Campos de entrada de credenciales
     this.usernameInput = page.locator(
       "#ctl00_CphContent_LoginControl1_TextBoxUser",
     );
@@ -40,54 +51,76 @@ export class LoginPage {
   }
 
   /**
-   * Navega a la URL especificada para el portal.
-   * @param url - Dirección del entorno (obtenida usualmente desde settings)
+   * Navega hacia la URL del entorno configurado.
+   * @param url URL destino del portal.
    */
   async navigate(url: string): Promise<void> {
+    logger.info(`Navegando a la URL: [${url}]`);
+
     await this.page.goto(url);
   }
 
   /**
-   * Realiza el flujo completo de autenticación.
-   * @param username - Nombre de usuario
-   * @param password - Contraseña
+   * Ejecuta el flujo completo de autenticación.
+   *
+   * Flujo:
+   * 1. Completa usuario
+   * 2. Completa contraseña
+   * 3. Ejecuta click de ingreso
+   *
+   * @param username Usuario del sistema.
+   * @param password Contraseña del usuario.
    */
   async login(username: string, password: string): Promise<void> {
+    logger.info(`Intentando autenticación con usuario: [${username}]`);
+
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
     await this.loginButton.click();
+
+    logger.debug("Click en botón de ingreso ejecutado.");
   }
 
   /**
-   * Espera a que el mensaje de error principal sea visible en la pantalla.
+   * Obtiene el mensaje de error mostrado durante el proceso de autenticación.
+   * @returns Texto del mensaje detectado.
+   */
+  async getErrorMessage(): Promise<string> {
+    const errorText = await this.errorMessage.innerText();
+
+    if (errorText) {
+      logger.warn(`Error de autenticación detectado: "${errorText}"`);
+    }
+
+    return errorText;
+  }
+
+  /**
+   * Espera hasta que el mensaje de error principal sea visible en pantalla.
    */
   async waitForErrorMessage(): Promise<void> {
     await this.errorMessage.waitFor({ state: "visible" });
   }
 
   /**
-   * Obtiene el texto del mensaje de error mostrado por el servidor.
-   */
-  async getErrorMessage(): Promise<string> {
-    return await this.errorMessage.innerText();
-  }
-
-  /**
-   * Verifica si el mensaje de error general es visible.
+   * Verifica si el mensaje general de error está visible.
+   * @returns True si el error existe y es visible.
    */
   async isErrorVisible(): Promise<boolean> {
     return await this.errorMessage.isVisible();
   }
 
   /**
-   * Valida si el mensaje de campo obligatorio del usuario está presente.
+   * Verifica si la validación requerida del campo usuario está activa.
+   * @returns True si la validación es visible.
    */
   async isUsernameErrorVisible(): Promise<boolean> {
     return await this.errorMessageUsernameInput.isVisible();
   }
 
   /**
-   * Valida si el mensaje de campo obligatorio de la contraseña está presente.
+   * Verifica si la validación requerida del campo contraseña está activa.
+   * @returns True si la validación es visible.
    */
   async isPasswordErrorVisible(): Promise<boolean> {
     return await this.errorMessagePasswordInput.isVisible();
