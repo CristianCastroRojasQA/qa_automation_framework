@@ -1,7 +1,9 @@
-import test, { expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { LoginPage } from "../../pages/auth/LoginPage";
 import { settings } from "../../../../../config/settings";
 import { logger } from "../../../../../utils/logger";
+import { attachScreenshot } from "../../../../../utils/screenshot";
+import { authData } from "../../../../../data/auth/auth.data";
 
 /**
  * Suite de pruebas para el módulo de Autenticación de PayStudio.
@@ -50,11 +52,14 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
    */
   test("TC-01: @smoke Visualización - Debe cargar el portal de login correctamente", async ({
     page,
-  }) => {
+  }, testInfo) => {
     await expect(page).toHaveURL(/LoginPage/);
+
     expect(await loginPage.isErrorVisible()).toBe(false);
 
     logger.info("Verificación de carga inicial exitosa.");
+
+    await attachScreenshot(page, testInfo);
   });
 
   /**
@@ -62,82 +67,110 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
    */
   test("TC-02: @smoke Login Exitoso - Debe permitir el ingreso con credenciales válidas", async ({
     page,
-  }) => {
+  }, testInfo) => {
     const { user, pass } = settings.credentials;
 
     await loginPage.login(user, pass);
+
     // Se valida redirección al dashboard principal
     await expect(page).toHaveURL(/MainPage/);
 
     logger.info(`Login exitoso con usuario: ${user}`);
+
+    await attachScreenshot(page, testInfo);
   });
 
   // Pruebas Funcionales
 
   /**
-   * Verifica que el sistema rechace credenciales con contraseña incorrecta.
+   * Verifica que el sistema rechace credenciales con contraseña inválida.
    */
-  test("TC-03: @functional Login Fallido - Debe mostrar error con contraseña incorrecta", async () => {
-    await loginPage.login(settings.credentials.user, "ClaveFalsa123*");
+  test("TC-03: @functional Login Fallido - Debe mostrar error con contraseña inválida", async ({
+    page,
+  }, testInfo) => {
+    await loginPage.login(
+      settings.credentials.user,
+      authData.invalidCredentials.wrongPassword,
+    );
 
-    await loginPage.waitForErrorMessage();
     const message = await loginPage.getErrorMessage();
 
     expect(await loginPage.isErrorVisible()).toBe(true);
+
     expect(message).toContain("Usuario y/o contraseña inválidos");
 
-    logger.info("Validación de contraseña incorrecta confirmada.");
+    logger.info("Validación de contraseña inválida confirmada.");
+
+    await attachScreenshot(page, testInfo);
   });
 
   /**
    * Verifica que el sistema rechace usuarios inexistentes.
    */
-  test("TC-04: @functional Login Fallido - Debe mostrar error con usuario inexistente", async () => {
-    await loginPage.login("UsuarioFalso", settings.credentials.pass);
+  test("TC-04: @functional Login Fallido - Debe mostrar error con usuario no encontrado", async ({
+    page,
+  }, testInfo) => {
+    await loginPage.login(
+      authData.invalidCredentials.nonExistingUser,
+      settings.credentials.pass,
+    );
 
-    await loginPage.waitForErrorMessage();
     const message = await loginPage.getErrorMessage();
 
     expect(await loginPage.isErrorVisible()).toBe(true);
+
     expect(message).toContain("Usuario no encontrado en el sistema");
 
-    logger.info("Validación de usuario inexistente confirmada.");
+    logger.info("Validación de usuario no encontrado confirmada.");
+
+    await attachScreenshot(page, testInfo);
   });
 
   /**
    * Verifica que el formulario active validaciones de campos obligatorios.
    */
-  test("TC-05: @functional Validación - Debe activar mensajes de campos obligatorios (Vacíos)", async () => {
-    await loginPage.login("", "");
+  test("TC-05: @functional Validación - Debe activar mensajes de campos obligatorios (Vacíos)", async ({
+    page,
+  }, testInfo) => {
+    await loginPage.login(authData.emptyFields.user, authData.emptyFields.pass);
 
     expect(await loginPage.isUsernameErrorVisible()).toBe(true);
     expect(await loginPage.isPasswordErrorVisible()).toBe(true);
 
     logger.info("Validación de campos obligatorios confirmada.");
+
+    await attachScreenshot(page, testInfo);
   });
 
   /**
    * Verifica la validación individual del campo usuario.
    */
-  test("TC-06: @functional Validación - Debe activar requerimiento solo en campo Usuario", async () => {
-    await loginPage.login("", settings.credentials.pass);
+  test("TC-06: @functional Validación - Debe activar requerimiento solo en campo Usuario", async ({
+    page,
+  }, testInfo) => {
+    await loginPage.login(authData.emptyFields.user, settings.credentials.pass);
 
     expect(await loginPage.isUsernameErrorVisible()).toBe(true);
     expect(await loginPage.isPasswordErrorVisible()).toBe(false);
 
     logger.info("Validación de usuario vacio confirmada.");
+
+    await attachScreenshot(page, testInfo);
   });
 
   /**
    * Verifica la validación individual del campo contraseña.
    */
-  test("TC-07: @functional Validación - Debe activar requerimiento solo en campo Contraseña", async () => {
-    await loginPage.login(settings.credentials.user, "");
+  test("TC-07: @functional Validación - Debe activar requerimiento solo en campo Contraseña", async ({
+    page,
+  }, testInfo) => {
+    await loginPage.login(settings.credentials.user, authData.emptyFields.pass);
 
     expect(await loginPage.isUsernameErrorVisible()).toBe(false);
     expect(await loginPage.isPasswordErrorVisible()).toBe(true);
 
     logger.info("Validación de contraseña vacia confirmada.");
+    await attachScreenshot(page, testInfo);
   });
 
   // Pruebas de Seguridad
@@ -147,17 +180,21 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
    */
   test("TC-08: @security Inyección - No debe permitir SQL Injection en campo usuario", async ({
     page,
-  }) => {
-    await loginPage.login("' OR 1=1 --", "cualquierCosa");
+  }, testInfo) => {
+    await loginPage.login(
+      authData.securityPayloads.sqlInjection.user,
+      authData.securityPayloads.sqlInjection.pass,
+    );
 
     await expect(page).toHaveURL(/LoginPage/);
 
-    await loginPage.waitForErrorMessage();
     const message = await loginPage.getErrorMessage();
 
     expect(message).toContain("Usuario no encontrado en el sistema");
 
     logger.info("Validación de SQL Injection confirmada.");
+
+    await attachScreenshot(page, testInfo);
   });
 
   /**
@@ -165,16 +202,20 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
    */
   test("TC-09: @security XSS - No debe permitir scripts maliciosos en el formulario", async ({
     page,
-  }) => {
-    await loginPage.login("<script>alert('xss')</script>", "cualquierCosa");
+  }, testInfo) => {
+    await loginPage.login(
+      authData.securityPayloads.xssAttack.user,
+      authData.securityPayloads.xssAttack.pass,
+    );
 
     await expect(page).toHaveURL(/LoginPage/);
 
-    await loginPage.waitForErrorMessage();
     const message = await loginPage.getErrorMessage();
 
     expect(message).toContain("Usuario no encontrado en el sistema");
 
     logger.info("Validación de XSS confirmada.");
+
+    await attachScreenshot(page, testInfo);
   });
 });
