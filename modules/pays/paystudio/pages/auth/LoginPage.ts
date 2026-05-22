@@ -57,7 +57,7 @@ export class LoginPage {
   async navigate(url: string): Promise<void> {
     logger.info(`Navegando a la URL: [${url}]`);
 
-    await this.page.goto(url);
+    await this.page.goto(url, { waitUntil: "domcontentloaded" });
   }
 
   /**
@@ -83,23 +83,21 @@ export class LoginPage {
 
   /**
    * Obtiene el mensaje de error mostrado durante el proceso de autenticación.
+   * Nota: espera a que el mensaje sea visible antes de leerlo.
    * @returns Texto del mensaje detectado.
    */
-  async getErrorMessage(): Promise<string> {
-    const errorText = await this.errorMessage.innerText();
 
-    if (errorText) {
-      logger.warn(`Error de autenticación detectado: "${errorText}"`);
+  async getErrorMessage(): Promise<string> {
+    await this.errorMessage.waitFor({ state: "visible" });
+
+    const rawText = (await this.errorMessage.textContent()) ?? "";
+    const cleanText = rawText.trim();
+
+    if (cleanText) {
+      logger.warn(`Error de autenticación detectado: "${cleanText}"`);
     }
 
-    return errorText;
-  }
-
-  /**
-   * Espera hasta que el mensaje de error principal sea visible en pantalla.
-   */
-  async waitForErrorMessage(): Promise<void> {
-    await this.errorMessage.waitFor({ state: "visible" });
+    return cleanText;
   }
 
   /**
