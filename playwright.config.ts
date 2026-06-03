@@ -35,11 +35,12 @@ const sharedLaunchOptions = {
  * - evita duplicación
  * - facilita mantenimiento
  * - mantiene consistencia entre módulos
+ *
+ * Nota: se omite la propiedad `channel` para usar el Chromium bundled
+ * de Playwright (comportamiento por defecto). Si en el futuro se requiere
+ * Google Chrome real instalado en el sistema, definir: channel: "chrome".
  */
 const sharedProjectConfig = {
-  // Navegador principal utilizado por el framework
-  channel: "chromium",
-
   // En CI utiliza resolución fija para reducir diferencias visuales.
   // Localmente usa dimensiones reales de ventana.
   viewport: IS_CI ? { width: 1920, height: 1080 } : null,
@@ -108,24 +109,9 @@ export default defineConfig({
     // Conserva video únicamente cuando la prueba falla.
     video: {
       mode: "retain-on-failure",
-
       size: {
         width: 1920,
         height: 1080,
-      },
-
-      show: {
-        actions: {
-          duration: 500,
-          position: "top-right",
-          fontSize: 14,
-        },
-
-        test: {
-          level: "step",
-          position: "top-left",
-          fontSize: 12,
-        },
       },
     },
 

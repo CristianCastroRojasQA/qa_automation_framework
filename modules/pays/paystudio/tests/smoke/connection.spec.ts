@@ -1,6 +1,7 @@
 // modules/pays/paystudio/tests/connection.spec.ts
+import { settings } from "@config/settings";
 import { test, expect } from "@playwright/test";
-import { settings } from "../../../../config/settings";
+
 
 test.describe("Prueba Rápida de Conexión - PayStudio", () => {
   test("Debería cargar la página de login de PayStudio correctamente", async ({
