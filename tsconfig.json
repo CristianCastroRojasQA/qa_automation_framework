@@ -1,5 +1,13 @@
 {
   "compilerOptions": {
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@config/*": ["./config/*"],
+      "@shared/*": ["./shared/*"],
+      "@utils/*": ["./utils/*"],
+      "@types-fw/*": ["./types/*"],
+      "@paystudio/*": ["./modules/pays/paystudio/*"],
+      "@portalcomercio/*": ["./modules/pays/portalcomercio/*"]
+    }
   }
 }

@@ -1,19 +1,45 @@
 import { Locator, Page } from "@playwright/test";
-import { logger } from "../../../../../utils/logger";
+import { logger } from "@utils/logger";
 
 /**
- * Representa la página de autenticación de PayStudio.
- * Implementa el patrón Page Object Model (POM)
- * para encapsular la interacción con:
- * - campos de login
- * - botones
- * - validaciones
- * - mensajes de error
+ * Page Object de la pantalla de autenticación de PayStudio.
+ *
+ * Contexto funcional:
+ * Esta página representa el punto de entrada al sistema para usuarios autenticados
+ * y centraliza la interacción con el formulario de acceso.
+ *
+ * Responsabilidades encapsuladas:
+ * - navegación hacia la URL del portal
+ * - ingreso de credenciales
+ * - ejecución del flujo de autenticación
+ * - consulta de mensajes de error generales
+ * - validación de errores requeridos por campo
+ *
+ * Su propósito es desacoplar los tests de los detalles del formulario de login
+ * y exponer una API clara, reutilizable y mantenible para escenarios
+ * de autenticación positiva y negativa.
  */
 export class LoginPage {
+  /**
+   * Referencia a la página activa de Playwright.
+   *
+   * Se utiliza para:
+   * - navegación al portal
+   * - sincronización con el documento cargado
+   */
   private readonly page: Page;
 
-  // Elementos de la página (Locators)
+  /**
+   * Locators internos de la pantalla de login.
+   *
+   * Criterio de diseño:
+   * - se utilizan selectores por sufijo (`[id$='...']`) para elementos ASP.NET
+   * - se evita dependencia de IDs completos generados dinámicamente
+   * - se aprovecha el identificador estable del UserControl (`LoginControl1`)
+   *
+   * Este enfoque mejora la resiliencia de la automatización frente a cambios
+   * en la jerarquía de MasterPage / ContentPlaceHolder.
+   */
   private readonly usernameInput: Locator;
   private readonly passwordInput: Locator;
   private readonly loginButton: Locator;
@@ -23,35 +49,43 @@ export class LoginPage {
 
   /**
    * Inicializa los selectores de la página de login.
-   * Nota: Se utilizan selectores basados en ID dinámicos de ASP.NET.
-   * @param page - Instancia de la página de Playwright.
+   *
+   * Consideraciones:
+   * - los campos y validaciones se resuelven con selectores estables
+   * - se separa el mensaje general de autenticación de las validaciones
+   *   requeridas por campo para facilitar escenarios positivos y negativos
+   *
+   * @param page Instancia activa de Playwright Page.
    */
   constructor(page: Page) {
     this.page = page;
 
     // Campos de entrada de credenciales
-    this.usernameInput = page.locator(
-      "#ctl00_CphContent_LoginControl1_TextBoxUser",
-    );
-    this.passwordInput = page.locator(
-      "#ctl00_CphContent_LoginControl1_TextBoxPassword",
-    );
+    this.usernameInput = page.locator("[id$='LoginControl1_TextBoxUser']");
+    this.passwordInput = page.locator("[id$='LoginControl1_TextBoxPassword']");
     this.loginButton = page.getByRole("button", { name: "Ingresar" }).first();
 
-    // Selectores para mensajes de validación y errores de backend
-    this.errorMessage = page.locator(
-      "#ctl00_CphContent_LoginControl1_LabelError",
-    );
+    // Mensaje general de error y validaciones requeridas por campo
+    this.errorMessage = page.locator("[id$='LoginControl1_LabelError']");
     this.errorMessageUsernameInput = page.locator(
-      "#ctl00_CphContent_LoginControl1_RequiredFieldValidatorUser",
+      "[id$='LoginControl1_RequiredFieldValidatorUser']",
     );
     this.errorMessagePasswordInput = page.locator(
-      "#ctl00_CphContent_LoginControl1_RequiredFieldValidatorPassword",
+      "[id$='LoginControl1_RequiredFieldValidatorPassword']",
     );
   }
 
   /**
-   * Navega hacia la URL del entorno configurado.
+   * Navega hacia la URL del portal configurado para el entorno actual.
+   *
+   * Comportamiento:
+   * - registra en logs la URL objetivo
+   * - ejecuta la navegación al portal
+   * - espera la carga base del documento (`domcontentloaded`)
+   *
+   * Este método actúa como punto de entrada para cualquier flujo
+   * de autenticación iniciado desde la página de login.
+   *
    * @param url URL destino del portal.
    */
   async navigate(url: string): Promise<void> {
@@ -61,12 +95,18 @@ export class LoginPage {
   }
 
   /**
-   * Ejecuta el flujo completo de autenticación.
+   * Ejecuta el flujo completo de autenticación con credenciales explícitas.
    *
    * Flujo:
-   * 1. Completa usuario
-   * 2. Completa contraseña
-   * 3. Ejecuta click de ingreso
+   * 1. Completa el campo de usuario
+   * 2. Completa el campo de contraseña
+   * 3. Ejecuta la acción de ingreso
+   *
+   * Comportamiento:
+   * - registra en logs el usuario utilizado para trazabilidad
+   * - delega en la página el proceso de autenticación
+   *
+   * Este método cubre el escenario funcional principal de acceso al sistema.
    *
    * @param username Usuario del sistema.
    * @param password Contraseña del usuario.
@@ -82,11 +122,18 @@ export class LoginPage {
   }
 
   /**
-   * Obtiene el mensaje de error mostrado durante el proceso de autenticación.
-   * Nota: espera a que el mensaje sea visible antes de leerlo.
-   * @returns Texto del mensaje detectado.
+   * Obtiene el mensaje general de error mostrado durante la autenticación.
+   *
+   * Comportamiento:
+   * - espera a que el mensaje esté visible antes de leerlo
+   * - normaliza espacios en blanco del contenido obtenido
+   * - registra en logs el mensaje cuando existe contenido
+   *
+   * Este método permite validar errores funcionales devueltos
+   * por el backend o por la lógica general de autenticación.
+   *
+   * @returns Texto limpio del mensaje de error detectado
    */
-
   async getErrorMessage(): Promise<string> {
     await this.errorMessage.waitFor({ state: "visible" });
 
@@ -101,24 +148,36 @@ export class LoginPage {
   }
 
   /**
-   * Verifica si el mensaje general de error está visible.
-   * @returns True si el error existe y es visible.
+   * Indica si el mensaje general de error de autenticación está visible.
+   *
+   * Este helper permite validar de forma rápida si el proceso
+   * de login expuso un error general al usuario.
+   *
+   * @returns `true` si el mensaje existe y está visible; de lo contrario `false`
    */
   async isErrorVisible(): Promise<boolean> {
     return await this.errorMessage.isVisible();
   }
 
   /**
-   * Verifica si la validación requerida del campo usuario está activa.
-   * @returns True si la validación es visible.
+   * Indica si la validación requerida del campo usuario se encuentra visible.
+   *
+   * Este helper cubre escenarios de validación de formulario
+   * donde el campo usuario es obligatorio y no fue completado.
+   *
+   * @returns `true` si la validación del campo usuario está visible; de lo contrario `false`
    */
   async isUsernameErrorVisible(): Promise<boolean> {
     return await this.errorMessageUsernameInput.isVisible();
   }
 
   /**
-   * Verifica si la validación requerida del campo contraseña está activa.
-   * @returns True si la validación es visible.
+   * Indica si la validación requerida del campo contraseña se encuentra visible.
+   *
+   * Este helper cubre escenarios de validación de formulario
+   * donde el campo contraseña es obligatorio y no fue completado.
+   *
+   * @returns `true` si la validación del campo contraseña está visible; de lo contrario `false`
    */
   async isPasswordErrorVisible(): Promise<boolean> {
     return await this.errorMessagePasswordInput.isVisible();
