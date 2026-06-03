@@ -36,7 +36,7 @@ test.describe(
     ],
   },
   () => {
-    test.beforeEach(async (_, testInfo) => {
+    test.beforeEach(async ({}, testInfo) => {
       logger.info(`>>> INICIANDO TEST: ${testInfo.title} <<<`);
     });
 
