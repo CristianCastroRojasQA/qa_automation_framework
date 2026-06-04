@@ -1,4 +1,4 @@
-import { AuthMessages } from "@paystudio/constants/auth/auth.messages";
+import { AuthMessages } from "@paystudio/test-data/auth/auth.constants";
 import { expect, Locator, Page } from "@playwright/test";
 import { logger } from "@utils/logger";
 
@@ -81,7 +81,9 @@ export class SessionInvalidPage {
     const rawText = (await this.invalidSessionMessage.textContent()) ?? "";
     const cleanText = rawText.trim();
 
-    logger.info(`Mensaje de sesión inválida detectado: "${cleanText}"`);
+    logger.info(
+      `[SessionInvalidPage] Mensaje de sesión inválida detectado: "${cleanText}"`,
+    );
 
     return cleanText;
   }
@@ -102,7 +104,9 @@ export class SessionInvalidPage {
       AuthMessages.SESSION_INVALID,
     );
 
-    logger.info("Mensaje de sesión inválida validado correctamente.");
+    logger.info(
+      "[SessionInvalidPage] Mensaje de sesión inválida validado correctamente.",
+    );
   }
 
   /**
@@ -120,6 +124,8 @@ export class SessionInvalidPage {
 
     await this.acceptButton.click();
 
-    logger.debug("Sesión inválida confirmada y botón Aceptar clickeado.");
+    logger.debug(
+      "[SessionInvalidPage] Sesión inválida confirmada y botón Aceptar clickeado.",
+    );
   }
 }

@@ -1,4 +1,4 @@
-import { NavbarMessages } from "@paystudio/constants/navbar/navbar.messages";
+import { NavbarMessages } from "@paystudio/test-data/navbar/navbar.constants";
 import { expect, Locator, Page } from "@playwright/test";
 import { logger } from "@utils/logger";
 
@@ -69,7 +69,9 @@ export class BusinessDateModal {
     const rawText = (await this.dateCell.textContent()) ?? "";
     const cleanText = rawText.trim();
 
-    logger.info(`Fecha de negocio detectada: [${cleanText}]`);
+    logger.info(
+      `[BusinessDateModal] Fecha de negocio detectada: [${cleanText}]`,
+    );
 
     if (!cleanText) {
       throw new Error("No se encontró la fecha de negocio.");
@@ -79,7 +81,7 @@ export class BusinessDateModal {
 
     if (cleanText !== today) {
       logger.warn(
-        `La fecha de negocio (${cleanText}) es diferente a la fecha actual (${today}).`,
+        `[BusinessDateModal] La fecha de negocio [${cleanText}] es diferente a la fecha actual [${today}].`,
       );
     }
 
@@ -95,12 +97,11 @@ export class BusinessDateModal {
    * 3. Registra trazabilidad de la acción
    */
   async close(): Promise<void> {
-    logger.info("Cerrando modal de Fechas de Negocio.");
+    logger.info("[BusinessDateModal] Cerrando modal de Fechas de Negocio.");
 
     await expect(this.closeButton).toBeVisible();
     await this.closeButton.click();
 
-    logger.debug("Click en botón Cerrar ejecutado.");
+    logger.debug("[BusinessDateModal] Click en botón Cerrar ejecutado.");
   }
 }
-``;

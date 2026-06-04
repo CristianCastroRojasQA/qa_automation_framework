@@ -89,7 +89,7 @@ export class LoginPage {
    * @param url URL destino del portal.
    */
   async navigate(url: string): Promise<void> {
-    logger.info(`Navegando a la URL: [${url}]`);
+    logger.info(`[LoginPage] Navegando a la URL: [${url}]`);
 
     await this.page.goto(url, { waitUntil: "domcontentloaded" });
   }
@@ -112,13 +112,41 @@ export class LoginPage {
    * @param password Contraseña del usuario.
    */
   async login(username: string, password: string): Promise<void> {
-    logger.info(`Intentando autenticación con usuario: [${username}]`);
+    logger.info(
+      `[LoginPage] Intentando autenticación con usuario: [${username}]`,
+    );
 
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
     await this.loginButton.click();
 
-    logger.debug("Click en botón de ingreso ejecutado.");
+    logger.debug("[LoginPage] Click en botón de ingreso ejecutado.");
+  }
+
+  /**
+   * Ejecuta el flujo de autenticación utilizando la tecla Enter en lugar del botón de ingreso.
+   * * Flujo:
+   * 1. Completa el campo de usuario
+   * 2. Completa el campo de contraseña
+   * 3. Presiona la tecla Enter sobre el campo de contraseña para activar el Default Button del HTML
+   *
+   * @param username Usuario del sistema.
+   * @param password Contraseña del usuario.
+   */
+  async loginWithEnter(username: string, password: string): Promise<void> {
+    logger.info(
+      `[LoginPage] Intentando autenticación mediante tecla Enter con usuario: [${username}]`,
+    );
+
+    await this.usernameInput.fill(username);
+    await this.passwordInput.fill(password);
+
+    // Presionamos Enter directamente en el input de contraseña para disparar el evento nativo
+    await this.passwordInput.press("Enter");
+
+    logger.debug(
+      "[LoginPage] Evento de teclado 'Enter' enviado al campo Password.",
+    );
   }
 
   /**
@@ -141,7 +169,9 @@ export class LoginPage {
     const cleanText = rawText.trim();
 
     if (cleanText) {
-      logger.warn(`Error de autenticación detectado: "${cleanText}"`);
+      logger.warn(
+        `[LoginPage] Error de autenticación detectado: "${cleanText}"`,
+      );
     }
 
     return cleanText;

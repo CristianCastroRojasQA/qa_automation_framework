@@ -72,23 +72,27 @@ export const test = authTest.extend<LifecycleFixtures>({
    */
   testLifecycle: [
     async ({ page }, use, testInfo) => {
-      logger.info(`>>> [INICIANDO TEST]: ${testInfo.title} <<<`);
+      logger.info(
+        `[LifecycleFixture] >>> INICIANDO TEST: ${testInfo.title} <<<`,
+      );
 
       await use();
 
       if (testInfo.status !== testInfo.expectedStatus) {
-        logger.error(`[TEST FALLIDO]: [${testInfo.title}]`);
+        logger.error(`[LifecycleFixture] TEST FALLIDO: [${testInfo.title}]`);
 
         const errorMessage = testInfo.error?.message
           ?.replace(/\x1B\[\d+m/g, "")
           .split("\n")[0];
 
-        logger.error(`[MOTIVO DEL FALLO]: ${errorMessage}`);
+        logger.error(`[LifecycleFixture] MOTIVO DEL FALLO: ${errorMessage}`);
       }
 
       await attachScreenshot(page, testInfo);
 
-      logger.info(`<<< [FINALIZADO TEST]: ${testInfo.title} >>>`);
+      logger.info(
+        `[LifecycleFixture] <<< FINALIZADO TEST: ${testInfo.title} >>>`,
+      );
     },
     {
       auto: true,

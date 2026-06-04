@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 import {
+  DatabaseConfig,
   LoggerConfig,
   ProjectCredentials,
   UserRole,
@@ -143,6 +144,33 @@ class Settings {
       maxSize: process.env.LOG_MAX_SIZE || "10m",
       maxFiles: process.env.LOG_MAX_FILES || "14d",
       dir: process.env.LOG_DIR || "Logs",
+    };
+  }
+
+  /**
+   * Configuración de conexión a base de datos
+   * asociada al proyecto y ambiente activos.
+   *
+   * Fuente:
+   * - <PREFIX>_DB_SERVER
+   * - <PREFIX>_DB_NAME
+   * - <PREFIX>_DB_USER
+   * - <PREFIX>_DB_PASS
+   *
+   * Ejemplo:
+   * PAYS_BPAGOS_CERT_DB_SERVER
+   *
+   * Uso típico:
+   * - repositorios
+   * - providers dinámicos
+   * - consultas de soporte para pruebas
+   */
+  get database(): DatabaseConfig {
+    return {
+      server: this.getEnvVar("DB_SERVER"),
+      database: this.getEnvVar("DB_NAME"),
+      user: this.getEnvVar("DB_USER"),
+      password: this.getEnvVar("DB_PASS"),
     };
   }
 

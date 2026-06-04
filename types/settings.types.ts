@@ -32,3 +32,16 @@ export interface LoggerConfig {
   maxFiles: string;
   dir: string;
 }
+
+/**
+ * Configuración de conexión a SQL Server.
+ *
+ * Representa los parámetros mínimos requeridos
+ * para establecer conexión desde el framework.
+ */
+export interface DatabaseConfig {
+  server: string;
+  database: string;
+  user: string;
+  password: string;
+}

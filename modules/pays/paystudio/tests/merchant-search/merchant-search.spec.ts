@@ -1,6 +1,9 @@
 import { settings } from "@config/settings";
 import { MerchantSearch } from "@paystudio/components/navbar/merchant-search";
-import { securityPayloads } from "@paystudio/data/security/security.payloads";
+import { MerchantSearchConstants } from "@paystudio/test-data/merchant-search/merchant-search.constants";
+import { merchantSearchData } from "@paystudio/test-data/merchant-search/merchant-search.data";
+import { MerchantProvider } from "@paystudio/test-data/merchant-search/merchant.provider";
+import { securityPayloads } from "@paystudio/test-data/security/security.payloads";
 import { expect, test } from "@paystudio/fixtures";
 import { logger } from "@utils/logger";
 
@@ -50,9 +53,7 @@ test.describe(
     ],
   },
   () => {
-    test.beforeEach(async ({ page, loginPage }, testInfo) => {
-      logger.info(`>>> INICIANDO TEST: ${testInfo.title} <<<`);
-
+    test.beforeEach(async ({ page, loginPage }) => {
       await loginPage.navigate(settings.paystudioUrl);
       await loginPage.login(
         settings.credentials.user,
@@ -91,6 +92,10 @@ test.describe(
           },
           async ({ navbar }) => {
             await navbar.openMerchantSearch();
+
+            logger.info(
+              "TC-01 validado correctamente: el buscador global se abrió desde el Navbar.",
+            );
           },
         );
 
@@ -121,7 +126,9 @@ test.describe(
 
             await merchantSearch.expectInputReady();
 
-            logger.info("Input listo para interacción.");
+            logger.info(
+              "TC-02 validado correctamente: el input del buscador quedó listo para interacción.",
+            );
           },
         );
       },
@@ -154,16 +161,18 @@ test.describe(
               { type: "requirement", description: "US 373109" },
             ],
           },
+
           async ({ navbar, page }) => {
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
+            const historyCount = await merchantSearch.validateSearchHistory();
 
-            const visible = await merchantSearch.isResultsContainerVisible();
+            expect(historyCount).toBeGreaterThan(0);
 
-            expect(visible).toBeTruthy();
-
-            logger.info("Historial visible correctamente.");
+            logger.info(
+              `TC-03 validado correctamente: el historial del buscador está visible y se detectaron [${historyCount}] elementos.`,
+            );
           },
         );
       },
@@ -200,10 +209,17 @@ test.describe(
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
+            const merchant = await MerchantProvider.getValidMerchant();
 
-            const count = await merchantSearch.searchByEnter("Comercio");
+            const count = await merchantSearch.searchByEnter(
+              merchant.legalName,
+            );
 
-            expect(count).toBeGreaterThanOrEqual(0);
+            expect(count).toBeGreaterThan(0);
+
+            logger.info(
+              `TC-04 validado correctamente: la búsqueda por nombre retornó [${count}] resultados para el comercio [${merchant.legalName}].`,
+            );
           },
         );
 
@@ -231,10 +247,17 @@ test.describe(
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
+            const merchant = await MerchantProvider.getValidMerchant();
 
-            const count = await merchantSearch.searchByEnter("34");
+            const count = await merchantSearch.searchByEnter(
+              merchant.merchantIdentifier,
+            );
 
             expect(count).toBeGreaterThan(0);
+
+            logger.info(
+              `TC-05 validado correctamente: la búsqueda por código retornó [${count}] resultados para el comercio [${merchant.merchantIdentifier}].`,
+            );
           },
         );
       },
@@ -272,10 +295,16 @@ test.describe(
 
             const merchantSearch = new MerchantSearch(page);
 
-            await merchantSearch.searchByEnter("COMERCIO_INEXISTENTE_999");
+            await merchantSearch.searchByEnter(
+              merchantSearchData.invalidSearches.nonExistingMerchant,
+            );
 
             await merchantSearch.expectNoResultsMessage(
-              "Comercio no encontrado",
+              MerchantSearchConstants.NO_RESULTS_MESSAGE,
+            );
+
+            logger.info(
+              `TC-06 validado correctamente: se mostró el mensaje esperado [${MerchantSearchConstants.NO_RESULTS_MESSAGE}] para el criterio [${merchantSearchData.invalidSearches.nonExistingMerchant}].`,
             );
           },
         );
@@ -313,12 +342,16 @@ test.describe(
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
+            const merchant = await MerchantProvider.getValidMerchant();
 
-            await merchantSearch.searchByEnter("34");
-
+            await merchantSearch.searchByEnter(merchant.merchantIdentifier);
             await merchantSearch.selectResultByIndex(0);
 
             await expect(page).toHaveURL(/MerchantEntryPoint/);
+
+            logger.info(
+              `TC-07 validado correctamente: la selección del comercio [${merchant.merchantIdentifier}] navegó al contexto esperado.`,
+            );
           },
         );
       },
@@ -345,7 +378,7 @@ test.describe(
               {
                 type: "coverage",
                 description:
-                  "Obtención de IDs desde resultados visibles, construcción del orden esperado y comparación entre orden actual y orden ascendente",
+                  "Búsqueda por nombre repetido, obtención de IDs desde resultados visibles, construcción del orden esperado y comparación entre orden actual y orden ascendente",
               },
               { type: "component", description: "MerchantSearch" },
               { type: "requirement", description: "US 373109" },
@@ -355,12 +388,19 @@ test.describe(
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
+            const repeatedFantasyName =
+              await MerchantProvider.getRepeatedFantasyName();
+
+            await merchantSearch.searchByEnter(repeatedFantasyName.fantasyName);
 
             const ids = await merchantSearch.getMerchantIdsFromResults();
-
             const sorted = [...ids].sort((a, b) => a - b);
 
             expect(ids).toEqual(sorted);
+
+            logger.info(
+              `TC-08 validado correctamente: la búsqueda por nombre repetido [${repeatedFantasyName.fantasyName}] retornó IDs en orden ascendente. IDs obtenidos=[${ids.join(", ")}] | orden esperado=[${sorted.join(", ")}].`,
+            );
           },
         );
 
@@ -388,10 +428,20 @@ test.describe(
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
+            const merchant = await MerchantProvider.getValidMerchant();
 
-            const count = await merchantSearch.searchByEnter("comercio");
+            const broadTerm = merchant.legalName.split(" ")[0];
 
-            expect(count).toBeLessThanOrEqual(10);
+            const count = await merchantSearch.searchByEnter(broadTerm);
+
+            expect(count).toBeGreaterThan(0);
+            expect(count).toBeLessThanOrEqual(
+              MerchantSearchConstants.MAX_RESULTS,
+            );
+
+            logger.info(
+              `TC-09 validado correctamente: la búsqueda retornó [${count}] resultados y respetó el máximo permitido de [${MerchantSearchConstants.MAX_RESULTS}].`,
+            );
           },
         );
       },
@@ -425,6 +475,13 @@ test.describe(
             ],
           },
           async ({ navbar, page }) => {
+            let dialogTriggered = false;
+
+            page.on("dialog", async (dialog) => {
+              dialogTriggered = true;
+              await dialog.dismiss();
+            });
+
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
@@ -433,7 +490,12 @@ test.describe(
               securityPayloads.xssAttack.user,
             );
 
-            expect(count).toBe(0);
+            await expect(page).toHaveURL(/MainPage/);
+            expect(dialogTriggered).toBe(false);
+
+            logger.info(
+              `TC-10 validado correctamente: el payload XSS no ejecutó scripts ni alteró el flujo. Resultados visibles=[${count}].`,
+            );
           },
         );
 
@@ -467,6 +529,10 @@ test.describe(
             );
 
             expect(count).toBe(0);
+
+            logger.info(
+              "TC-11 validado correctamente: el payload SQL Injection no generó resultados válidos.",
+            );
           },
         );
       },
