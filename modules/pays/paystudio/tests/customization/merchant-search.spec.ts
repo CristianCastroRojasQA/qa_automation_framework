@@ -1,9 +1,8 @@
-import { test, expect } from "@paystudio/fixtures/auth.fixture";
-import { logger } from "@utils/logger";
-import { attachScreenshot } from "@utils/screenshot";
-import { MerchantSearch } from "@paystudio/components/navbar/merchant-search";
 import { settings } from "@config/settings";
+import { MerchantSearch } from "@paystudio/components/navbar/merchant-search";
 import { securityPayloads } from "@paystudio/data/security/security.payloads";
+import { expect, test } from "@paystudio/fixtures";
+import { logger } from "@utils/logger";
 
 /**
  * Suite de pruebas del Buscador Global de Comercios de PayStudio.
@@ -61,11 +60,6 @@ test.describe(
       );
 
       await expect(page).toHaveURL(/MainPage/);
-    });
-
-    test.afterEach(async ({ page }, testInfo) => {
-      await attachScreenshot(page, testInfo);
-      logger.info(`<<< FINALIZADO TEST: ${testInfo.title} >>>`);
     });
 
     test.describe(
