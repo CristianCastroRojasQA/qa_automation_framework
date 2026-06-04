@@ -1,10 +1,9 @@
 import { settings } from "@config/settings";
-import { authData } from "@paystudio/data/auth/auth.data";
 import { AuthMessages } from "@paystudio/constants/auth/auth.messages";
+import { authData } from "@paystudio/data/auth/auth.data";
 import { securityPayloads } from "@paystudio/data/security/security.payloads";
-import { test, expect } from "@paystudio/fixtures/auth.fixture";
+import { expect, test } from "@paystudio/fixtures";
 import { logger } from "@utils/logger";
-import { attachScreenshot } from "@utils/screenshot";
 
 /**
  * Suite de pruebas del módulo de Autenticación de PayStudio.
@@ -36,28 +35,6 @@ test.describe(
     ],
   },
   () => {
-    test.beforeEach(async ({}, testInfo) => {
-      logger.info(`>>> INICIANDO TEST: ${testInfo.title} <<<`);
-    });
-
-    test.afterEach(async ({ page }, testInfo) => {
-      if (testInfo.status !== testInfo.expectedStatus) {
-        logger.error(`TEST FALLIDO: [${testInfo.title}]`);
-
-        if (testInfo.error) {
-          const cleanErrorMessage = testInfo.error.message
-            ?.replace(/\x1B\[\d+m/g, "")
-            .split("\n")[0];
-
-          logger.error(`MOTIVO DEL FALLO: ${cleanErrorMessage}`);
-        }
-      }
-
-      await attachScreenshot(page, testInfo);
-
-      logger.info(`<<< FINALIZADO TEST: ${testInfo.title} >>>\n`);
-    });
-
     test.describe(
       "Smoke",
       {

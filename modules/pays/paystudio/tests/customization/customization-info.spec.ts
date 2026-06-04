@@ -1,9 +1,8 @@
 import { settings } from "@config/settings";
-import { test, expect } from "@paystudio/fixtures/auth.fixture";
 import { AboutModal } from "@paystudio/components/navbar/about-modal";
 import { BusinessDateModal } from "@paystudio/components/navbar/business-date-modal";
+import { expect, test } from "@paystudio/fixtures";
 import { logger } from "@utils/logger";
-import { attachScreenshot } from "@utils/screenshot";
 
 /**
  * Suite de pruebas del módulo de Customización de PayStudio.
@@ -34,32 +33,15 @@ test.describe(
     ],
   },
   () => {
-    test.beforeEach(async ({ page, loginPage }, testInfo) => {
-      logger.info(`>>> INICIANDO TEST: ${testInfo.title} <<<`);
-
+    test.beforeEach(async ({ page, loginPage }) => {
       await loginPage.navigate(settings.paystudioUrl);
+
       await loginPage.login(
         settings.credentials.user,
         settings.credentials.pass,
       );
 
       await expect(page).toHaveURL(/MainPage/);
-    });
-
-    test.afterEach(async ({ page }, testInfo) => {
-      if (testInfo.status !== testInfo.expectedStatus) {
-        logger.error(`TEST FALLIDO: [${testInfo.title}]`);
-
-        const errorMessage = testInfo.error?.message
-          ?.replace(/\x1B\[\d+m/g, "")
-          .split("\n")[0];
-
-        logger.error(`MOTIVO DEL FALLO: ${errorMessage}`);
-      }
-
-      await attachScreenshot(page, testInfo);
-
-      logger.info(`<<< FINALIZADO TEST: ${testInfo.title} >>>\n`);
     });
 
     test.describe(
