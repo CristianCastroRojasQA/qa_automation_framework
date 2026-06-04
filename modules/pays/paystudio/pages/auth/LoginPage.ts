@@ -89,7 +89,7 @@ export class LoginPage {
    * @param url URL destino del portal.
    */
   async navigate(url: string): Promise<void> {
-    logger.info(`Navegando a la URL: [${url}]`);
+    logger.info(`[LoginPage] Navegando a la URL: [${url}]`);
 
     await this.page.goto(url, { waitUntil: "domcontentloaded" });
   }
@@ -112,13 +112,15 @@ export class LoginPage {
    * @param password Contraseña del usuario.
    */
   async login(username: string, password: string): Promise<void> {
-    logger.info(`Intentando autenticación con usuario: [${username}]`);
+    logger.info(
+      `[LoginPage] Intentando autenticación con usuario: [${username}]`,
+    );
 
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
     await this.loginButton.click();
 
-    logger.debug("Click en botón de ingreso ejecutado.");
+    logger.debug("[LoginPage] Click en botón de ingreso ejecutado.");
   }
 
   /**
@@ -141,7 +143,9 @@ export class LoginPage {
     const cleanText = rawText.trim();
 
     if (cleanText) {
-      logger.warn(`Error de autenticación detectado: "${cleanText}"`);
+      logger.warn(
+        `[LoginPage] Error de autenticación detectado: "${cleanText}"`,
+      );
     }
 
     return cleanText;

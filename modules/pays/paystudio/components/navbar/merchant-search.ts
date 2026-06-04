@@ -25,10 +25,6 @@ import { logger } from "@utils/logger";
  * funcionales asociados a búsqueda rápida de comercios.
  */
 export class MerchantSearch {
-  // =========================
-  // ELEMENTOS DEL COMPONENTE
-  // =========================
-
   /**
    * Locators internos del componente.
    *
@@ -77,8 +73,12 @@ export class MerchantSearch {
    * de búsqueda rápida de comercios.
    */
   async open(): Promise<void> {
+    logger.info("[MerchantSearch] Abriendo buscador global de comercios.");
+
     await this.searchButton.click();
     await expect(this.searchInput).toBeVisible();
+
+    logger.info("[MerchantSearch] Buscador global abierto correctamente.");
   }
 
   /**
@@ -98,6 +98,10 @@ export class MerchantSearch {
     await expect(this.searchInput).toBeEnabled();
 
     await this.searchInput.click();
+
+    logger.info(
+      "[MerchantSearch] Input de búsqueda visible, habilitado y listo para interacción.",
+    );
   }
 
   /**
@@ -118,14 +122,22 @@ export class MerchantSearch {
    * @returns Número de resultados encontrados y visibles en pantalla
    */
   async searchByEnter(value: string): Promise<number> {
-    logger.info(`Buscando: ${value}`);
+    logger.info(
+      `[MerchantSearch] Ejecutando búsqueda con criterio: [${value}]`,
+    );
 
     await this.searchInput.fill(value);
     await this.searchInput.press("Enter");
 
     await this.resultsContainer.waitFor();
 
-    return await this.resultItems.count();
+    const count = await this.resultItems.count();
+
+    logger.info(
+      `[MerchantSearch] Búsqueda ejecutada correctamente. Resultados obtenidos: [${count}]`,
+    );
+
+    return count;
   }
 
   /**
@@ -146,7 +158,9 @@ export class MerchantSearch {
 
     const count = await this.resultItems.count();
 
-    logger.info(`Historial items: ${count}`);
+    logger.info(
+      `[MerchantSearch] Historial de búsqueda visible. Elementos detectados: [${count}]`,
+    );
 
     return count;
   }
@@ -172,6 +186,10 @@ export class MerchantSearch {
 
     await expect(msg).toBeVisible();
     await expect(msg).toContainText(text);
+
+    logger.info(
+      `[MerchantSearch] Mensaje de no resultados validado correctamente: [${text}]`,
+    );
   }
 
   /**
@@ -192,8 +210,11 @@ export class MerchantSearch {
     const item = this.resultItems.nth(index);
 
     await expect(item).toBeVisible();
-
     await item.click();
+
+    logger.info(
+      `[MerchantSearch] Resultado seleccionado correctamente en el índice [${index}].`,
+    );
   }
 
   /**
@@ -213,12 +234,18 @@ export class MerchantSearch {
   async getMerchantIdsFromResults(): Promise<number[]> {
     const items = await this.resultItems.allTextContents();
 
-    return items
+    const ids = items
       .map((t) => {
         const match = t.match(/#(\d+)/);
         return match ? Number(match[1]) : null;
       })
       .filter((x): x is number => x !== null);
+
+    logger.info(
+      `[MerchantSearch] IDs de comercios extraídos desde resultados: [${ids.join(", ")}]`,
+    );
+
+    return ids;
   }
 
   /**

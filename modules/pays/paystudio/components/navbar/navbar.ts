@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from "@playwright/test";
-import { NavbarMessages } from "@paystudio/constants/navbar/navbar.messages";
+import { NavbarMessages } from "@paystudio/test-data/navbar/navbar.constants";
 import { logger } from "@utils/logger";
 
 /**
@@ -104,7 +104,7 @@ export class Navbar {
     await this.page.waitForLoadState("domcontentloaded");
     await expect(this.userWelcome).toBeVisible();
 
-    logger.debug("Navbar listo para interacción.");
+    logger.debug("[Navbar] Navbar listo para interacción.");
   }
 
   /**
@@ -124,7 +124,7 @@ export class Navbar {
     await expect(this.userMenuTrigger).toBeVisible();
     await this.userMenuTrigger.click();
 
-    logger.debug("Menú de usuario abierto.");
+    logger.debug("[Navbar] Menú de usuario abierto.");
   }
 
   /**
@@ -142,7 +142,7 @@ export class Navbar {
    * El overlay del buscador queda disponible para interacción.
    */
   async openMerchantSearch(): Promise<void> {
-    logger.info("Abriendo buscador global de comercios.");
+    logger.info("[Navbar] Abriendo buscador global de comercios.");
 
     await this.waitForReady();
 
@@ -151,7 +151,7 @@ export class Navbar {
 
     await expect(this.merchantSearchModal).toBeAttached();
 
-    logger.debug("Buscador global abierto correctamente.");
+    logger.debug("[Navbar] Buscador global abierto correctamente.");
   }
 
   /**
@@ -165,14 +165,14 @@ export class Navbar {
    * Este método dispara el modal utilizado para consulta de fechas operativas.
    */
   async openBusinessDateModal(): Promise<void> {
-    logger.info("Abriendo modal de Fecha de Negocio.");
+    logger.info("[Navbar] Abriendo modal de Fecha de Negocio.");
 
     await this.openUserMenu();
 
     await expect(this.businessDateLink).toBeVisible();
     await this.businessDateLink.click();
 
-    logger.debug("Click en opción de Fecha de Negocio ejecutado.");
+    logger.debug("[Navbar] Click en opción de Fecha de Negocio ejecutado.");
   }
 
   /**
@@ -187,14 +187,14 @@ export class Navbar {
    * a gestión de credenciales del usuario.
    */
   async goToChangePassword(): Promise<void> {
-    logger.info("Navegando a Cambiar Contraseña.");
+    logger.info("[Navbar] Navegando a Cambiar Contraseña.");
 
     await this.openUserMenu();
 
     await expect(this.changePasswordLink).toBeVisible();
     await this.changePasswordLink.click();
 
-    logger.debug("Click en opción de Cambiar Contraseña ejecutado.");
+    logger.debug("[Navbar] Click en opción de Cambiar Contraseña ejecutado.");
   }
 
   /**
@@ -208,14 +208,14 @@ export class Navbar {
    * Este modal expone información de versión del sistema.
    */
   async openAboutModal(): Promise<void> {
-    logger.info("Abriendo modal Acerca De.");
+    logger.info('[Navbar] Abriendo modal "Acerca de".');
 
     await this.openUserMenu();
 
     await expect(this.aboutLink).toBeVisible();
     await this.aboutLink.click();
 
-    logger.debug("Click en opción Acerca De ejecutado.");
+    logger.debug('[Navbar] Click en opción "Acerca de" ejecutado.');
   }
 
   /**
@@ -230,13 +230,14 @@ export class Navbar {
    * gestión de sesión y limpieza de estado entre pruebas.
    */
   async logout(): Promise<void> {
-    logger.info("Ejecutando logout desde Navbar.");
+    logger.info("[Navbar] Ejecutando logout desde Navbar.");
 
     await this.openUserMenu();
 
     await expect(this.logoutLink).toBeVisible();
     await this.logoutLink.click();
 
-    logger.debug("Click en opción de logout ejecutado.");
+    logger.debug("[Navbar] Click en opción de logout ejecutado.");
   }
 }
+``;

@@ -1,4 +1,4 @@
-import { AuthMessages } from "@paystudio/constants/auth/auth.messages";
+import { AuthMessages } from "@paystudio/test-data/auth/auth.constants";
 import { expect, Locator, Page } from "@playwright/test";
 import { logger } from "@utils/logger";
 
@@ -78,7 +78,7 @@ export class LogoutPage {
     const rawText = (await this.logoutMessage.textContent()) ?? "";
     const cleanText = rawText.trim();
 
-    logger.info(`Mensaje logout detectado: "${cleanText}"`);
+    logger.info(`[LogoutPage] Mensaje de logout detectado: "${cleanText}"`);
 
     return cleanText;
   }
@@ -101,6 +101,6 @@ export class LogoutPage {
 
     await this.confirmButton.click();
 
-    logger.debug("Logout confirmado y botón Aceptar clickeado.");
+    logger.debug("[LogoutPage] Logout confirmado y botón Aceptar clickeado.");
   }
 }

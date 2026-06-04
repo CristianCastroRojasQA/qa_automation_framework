@@ -1,7 +1,7 @@
 import { settings } from "@config/settings";
-import { AuthMessages } from "@paystudio/constants/auth/auth.messages";
-import { authData } from "@paystudio/data/auth/auth.data";
-import { securityPayloads } from "@paystudio/data/security/security.payloads";
+import { AuthMessages } from "@paystudio/test-data/auth/auth.constants";
+import { authData } from "@paystudio/test-data/auth/auth.data";
+import { securityPayloads } from "@paystudio/test-data/security/security.payloads";
 import { expect, test } from "@paystudio/fixtures";
 import { logger } from "@utils/logger";
 
@@ -67,7 +67,9 @@ test.describe(
             await expect(page).toHaveURL(/LoginPage/);
             expect(await loginPage.isErrorVisible()).toBe(false);
 
-            logger.info("Verificación de carga inicial exitosa.");
+            logger.info(
+              "TC-01 validado correctamente: el portal de login cargó correctamente y no se detectaron errores visibles.",
+            );
           },
         );
 
@@ -99,7 +101,9 @@ test.describe(
 
             await expect(page).toHaveURL(/MainPage/);
 
-            logger.info(`Login exitoso con usuario: ${user}`);
+            logger.info(
+              `TC-02 validado correctamente: el login fue exitoso para el usuario [${user}] y se redirigió a MainPage.`,
+            );
           },
         );
       },
@@ -144,7 +148,9 @@ test.describe(
             expect(await loginPage.isErrorVisible()).toBe(true);
             expect(message).toContain(AuthMessages.INVALID_CREDENTIALS);
 
-            logger.info("Validación de contraseña inválida confirmada.");
+            logger.info(
+              `TC-03 validado correctamente: se mostró el mensaje esperado de credenciales inválidas [${AuthMessages.INVALID_CREDENTIALS}].`,
+            );
           },
         );
 
@@ -180,7 +186,9 @@ test.describe(
             expect(await loginPage.isErrorVisible()).toBe(true);
             expect(message).toContain(AuthMessages.USER_NOT_FOUND);
 
-            logger.info("Validación de usuario no encontrado confirmada.");
+            logger.info(
+              `TC-04 validado correctamente: se mostró el mensaje esperado de usuario no encontrado [${AuthMessages.USER_NOT_FOUND}].`,
+            );
           },
         );
 
@@ -211,10 +219,17 @@ test.describe(
               authData.emptyFields.pass,
             );
 
-            expect(await loginPage.isUsernameErrorVisible()).toBe(true);
-            expect(await loginPage.isPasswordErrorVisible()).toBe(true);
+            const usernameErrorVisible =
+              await loginPage.isUsernameErrorVisible();
+            const passwordErrorVisible =
+              await loginPage.isPasswordErrorVisible();
 
-            logger.info("Validación de campos obligatorios confirmada.");
+            expect(usernameErrorVisible).toBe(true);
+            expect(passwordErrorVisible).toBe(true);
+
+            logger.info(
+              `TC-05 validado correctamente: se activaron las validaciones requeridas. usuarioVisible=[${usernameErrorVisible}] | passwordVisible=[${passwordErrorVisible}].`,
+            );
           },
         );
 
@@ -245,10 +260,17 @@ test.describe(
               settings.credentials.pass,
             );
 
-            expect(await loginPage.isUsernameErrorVisible()).toBe(true);
-            expect(await loginPage.isPasswordErrorVisible()).toBe(false);
+            const usernameErrorVisible =
+              await loginPage.isUsernameErrorVisible();
+            const passwordErrorVisible =
+              await loginPage.isPasswordErrorVisible();
 
-            logger.info("Validación de usuario vacio confirmada.");
+            expect(usernameErrorVisible).toBe(true);
+            expect(passwordErrorVisible).toBe(false);
+
+            logger.info(
+              `TC-06 validado correctamente: solo se activó la validación requerida en Usuario. usuarioVisible=[${usernameErrorVisible}] | passwordVisible=[${passwordErrorVisible}].`,
+            );
           },
         );
 
@@ -279,10 +301,17 @@ test.describe(
               authData.emptyFields.pass,
             );
 
-            expect(await loginPage.isUsernameErrorVisible()).toBe(false);
-            expect(await loginPage.isPasswordErrorVisible()).toBe(true);
+            const usernameErrorVisible =
+              await loginPage.isUsernameErrorVisible();
+            const passwordErrorVisible =
+              await loginPage.isPasswordErrorVisible();
 
-            logger.info("Validación de contraseña vacia confirmada.");
+            expect(usernameErrorVisible).toBe(false);
+            expect(passwordErrorVisible).toBe(true);
+
+            logger.info(
+              `TC-07 validado correctamente: solo se activó la validación requerida en Contraseña. usuarioVisible=[${usernameErrorVisible}] | passwordVisible=[${passwordErrorVisible}].`,
+            );
           },
         );
       },
@@ -325,9 +354,12 @@ test.describe(
             await expect(page).toHaveURL(/LoginPage/);
 
             const message = await loginPage.getErrorMessage();
+
             expect(message).toContain(AuthMessages.USER_NOT_FOUND);
 
-            logger.info("Validación de SQL Injection confirmada.");
+            logger.info(
+              `TC-08 validado correctamente: el payload SQL Injection fue rechazado y se mostró el mensaje esperado [${AuthMessages.USER_NOT_FOUND}].`,
+            );
           },
         );
 
@@ -361,9 +393,12 @@ test.describe(
             await expect(page).toHaveURL(/LoginPage/);
 
             const message = await loginPage.getErrorMessage();
+
             expect(message).toContain(AuthMessages.USER_NOT_FOUND);
 
-            logger.info("Validación de XSS confirmada.");
+            logger.info(
+              `TC-09 validado correctamente: el payload XSS fue rechazado y se mostró el mensaje esperado [${AuthMessages.USER_NOT_FOUND}].`,
+            );
           },
         );
       },
@@ -409,7 +444,9 @@ test.describe(
 
             await expect(page).toHaveURL(/LoginPage/);
 
-            logger.info("Flujo de logout validado correctamente.");
+            logger.info(
+              "TC-10 validado correctamente: el flujo de logout cerró la sesión y redirigió nuevamente a LoginPage.",
+            );
           },
         );
       },

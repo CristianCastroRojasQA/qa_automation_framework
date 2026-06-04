@@ -1,4 +1,4 @@
-import { NavbarMessages } from "@paystudio/constants/navbar/navbar.messages";
+import { NavbarMessages } from "@paystudio/test-data/navbar/navbar.constants";
 import { expect, Locator, Page } from "@playwright/test";
 import { logger } from "@utils/logger";
 
@@ -62,7 +62,7 @@ export class AboutModal {
     const rawText = (await this.assemblyVersion.textContent()) ?? "";
     const cleanText = rawText.trim();
 
-    logger.info(`Versión del Assembly detectada: [${cleanText}]`);
+    logger.info(`[AboutModal] Versión del Assembly detectada: [${cleanText}]`);
 
     return cleanText;
   }
@@ -76,11 +76,11 @@ export class AboutModal {
    * 3. Registra trazabilidad básica del evento
    */
   async close(): Promise<void> {
-    logger.info("Cerrando modal Acerca De.");
+    logger.info('[AboutModal] Cerrando modal "Acerca de la versión".');
 
     await expect(this.closeButton).toBeVisible();
     await this.closeButton.click();
 
-    logger.debug("Click en botón Cerrar ejecutado.");
+    logger.debug("[AboutModal] Click en botón Cerrar ejecutado.");
   }
 }

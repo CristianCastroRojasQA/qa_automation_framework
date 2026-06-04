@@ -78,11 +78,11 @@ test.describe(
 
             expect(businessDate).not.toBe("");
 
-            logger.info(`Fecha de negocio validada: ${businessDate}`);
-
             await businessDateModal.close();
 
-            logger.info("Validación de fecha de negocio confirmada.");
+            logger.info(
+              `TC-01 validado correctamente: el modal de Fecha de Negocio mostró el valor [${businessDate}] y se cerró correctamente.`,
+            );
           },
         );
       },
@@ -122,14 +122,15 @@ test.describe(
 
             expect(version).not.toBe("");
 
-            logger.info(`Versión del sistema validada: ${version}`);
-
             await aboutModal.close();
 
-            logger.info("Validación de versión del sistema confirmada.");
+            logger.info(
+              `TC-02 validado correctamente: el modal "Acerca de" mostró la versión [${version}] y se cerró correctamente.`,
+            );
           },
         );
       },
     );
   },
 );
+``;
