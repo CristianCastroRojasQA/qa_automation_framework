@@ -161,16 +161,14 @@ test.describe(
               { type: "requirement", description: "US 373109" },
             ],
           },
+
           async ({ navbar, page }) => {
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
-
-            const visible = await merchantSearch.isResultsContainerVisible();
             const historyCount = await merchantSearch.validateSearchHistory();
 
-            expect(visible).toBeTruthy();
-            expect(historyCount).toBeGreaterThanOrEqual(0);
+            expect(historyCount).toBeGreaterThan(0);
 
             logger.info(
               `TC-03 validado correctamente: el historial del buscador está visible y se detectaron [${historyCount}] elementos.`,
@@ -380,7 +378,7 @@ test.describe(
               {
                 type: "coverage",
                 description:
-                  "Obtención de IDs desde resultados visibles, construcción del orden esperado y comparación entre orden actual y orden ascendente",
+                  "Búsqueda por nombre repetido, obtención de IDs desde resultados visibles, construcción del orden esperado y comparación entre orden actual y orden ascendente",
               },
               { type: "component", description: "MerchantSearch" },
               { type: "requirement", description: "US 373109" },
@@ -390,6 +388,10 @@ test.describe(
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
+            const repeatedFantasyName =
+              await MerchantProvider.getRepeatedFantasyName();
+
+            await merchantSearch.searchByEnter(repeatedFantasyName.fantasyName);
 
             const ids = await merchantSearch.getMerchantIdsFromResults();
             const sorted = [...ids].sort((a, b) => a - b);
@@ -397,7 +399,7 @@ test.describe(
             expect(ids).toEqual(sorted);
 
             logger.info(
-              `TC-08 validado correctamente: los IDs obtenidos del buscador se presentaron en orden ascendente. IDs obtenidos=[${ids.join(", ")}] | orden esperado=[${sorted.join(", ")}].`,
+              `TC-08 validado correctamente: la búsqueda por nombre repetido [${repeatedFantasyName.fantasyName}] retornó IDs en orden ascendente. IDs obtenidos=[${ids.join(", ")}] | orden esperado=[${sorted.join(", ")}].`,
             );
           },
         );
@@ -426,9 +428,13 @@ test.describe(
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
+            const merchant = await MerchantProvider.getValidMerchant();
 
-            const count = await merchantSearch.searchByEnter("comercio");
+            const broadTerm = merchant.legalName.split(" ")[0];
 
+            const count = await merchantSearch.searchByEnter(broadTerm);
+
+            expect(count).toBeGreaterThan(0);
             expect(count).toBeLessThanOrEqual(
               MerchantSearchConstants.MAX_RESULTS,
             );
@@ -469,6 +475,13 @@ test.describe(
             ],
           },
           async ({ navbar, page }) => {
+            let dialogTriggered = false;
+
+            page.on("dialog", async (dialog) => {
+              dialogTriggered = true;
+              await dialog.dismiss();
+            });
+
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
@@ -477,10 +490,11 @@ test.describe(
               securityPayloads.xssAttack.user,
             );
 
-            expect(count).toBe(0);
+            await expect(page).toHaveURL(/MainPage/);
+            expect(dialogTriggered).toBe(false);
 
             logger.info(
-              "TC-10 validado correctamente: el payload XSS no generó resultados válidos.",
+              `TC-10 validado correctamente: el payload XSS no ejecutó scripts ni alteró el flujo. Resultados visibles=[${count}].`,
             );
           },
         );

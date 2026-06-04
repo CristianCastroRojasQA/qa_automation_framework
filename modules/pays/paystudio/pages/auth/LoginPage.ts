@@ -124,6 +124,32 @@ export class LoginPage {
   }
 
   /**
+   * Ejecuta el flujo de autenticación utilizando la tecla Enter en lugar del botón de ingreso.
+   * * Flujo:
+   * 1. Completa el campo de usuario
+   * 2. Completa el campo de contraseña
+   * 3. Presiona la tecla Enter sobre el campo de contraseña para activar el Default Button del HTML
+   *
+   * @param username Usuario del sistema.
+   * @param password Contraseña del usuario.
+   */
+  async loginWithEnter(username: string, password: string): Promise<void> {
+    logger.info(
+      `[LoginPage] Intentando autenticación mediante tecla Enter con usuario: [${username}]`,
+    );
+
+    await this.usernameInput.fill(username);
+    await this.passwordInput.fill(password);
+
+    // Presionamos Enter directamente en el input de contraseña para disparar el evento nativo
+    await this.passwordInput.press("Enter");
+
+    logger.debug(
+      "[LoginPage] Evento de teclado 'Enter' enviado al campo Password.",
+    );
+  }
+
+  /**
    * Obtiene el mensaje general de error mostrado durante la autenticación.
    *
    * Comportamiento:

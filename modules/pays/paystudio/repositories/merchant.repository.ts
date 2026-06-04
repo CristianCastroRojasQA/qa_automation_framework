@@ -1,6 +1,6 @@
 import { MerchantQueries } from "@database/queries/merchant.queries";
 import { SqlServerClient } from "@database/sqlserver.client";
-import { Merchant } from "@paystudio/types/merchant.types";
+import { Merchant, RepeatedFantasyName } from "@paystudio/types/merchant.types";
 import { logger } from "@utils/logger";
 
 /**
@@ -13,7 +13,7 @@ import { logger } from "@utils/logger";
  *
  * Responsabilidades:
  * - ejecutar consultas del dominio Merchant
- * - mapear resultados al tipo `Merchant`
+ * - mapear resultados a tipos del dominio
  * - exponer métodos reutilizables para providers o tests
  *
  * Consideraciones:
@@ -58,5 +58,40 @@ export class MerchantRepository {
     );
 
     return merchant;
+  }
+
+  /**
+   * Obtiene un nombre de fantasía repetido para pruebas
+   * que requieren múltiples resultados en el buscador.
+   *
+   * @returns Un nombre de fantasía repetido consumible por Merchant Search
+   * @throws Error si no se encuentra ningún nombre repetido
+   */
+  public async getRepeatedFantasyName(): Promise<RepeatedFantasyName> {
+    logger.info(
+      "[MerchantRepository] Consultando nombre de fantasía repetido para búsqueda múltiple.",
+    );
+
+    const result = await this.db.query<RepeatedFantasyName>(
+      MerchantQueries.getRepeatedFantasyName,
+    );
+
+    const repeatedFantasyName = result[0];
+
+    if (!repeatedFantasyName) {
+      logger.error(
+        "[MerchantRepository] No se encontró un nombre de fantasía repetido en la base de datos.",
+      );
+
+      throw new Error(
+        "No se encontró un nombre de fantasía repetido en la base de datos.",
+      );
+    }
+
+    logger.info(
+      `[MerchantRepository] Nombre de fantasía repetido obtenido correctamente: [${repeatedFantasyName.fantasyName}]`,
+    );
+
+    return repeatedFantasyName;
   }
 }

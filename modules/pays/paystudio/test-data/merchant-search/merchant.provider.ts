@@ -1,11 +1,11 @@
 import { MerchantRepository } from "@paystudio/repositories/merchant.repository";
-import { Merchant } from "@paystudio/types/merchant.types";
+import { Merchant, RepeatedFantasyName } from "@paystudio/types/merchant.types";
 
 /**
  * Provider de datos dinámicos para Merchant Search.
  *
  * Contexto:
- * Esta clase abstrae la obtención de comercios válidos
+ * Esta clase abstrae la obtención de datos válidos
  * para pruebas funcionales del módulo Merchant Search.
  *
  * Responsabilidades:
@@ -31,5 +31,15 @@ export class MerchantProvider {
    */
   public static async getValidMerchant(): Promise<Merchant> {
     return this.repository.getMerchant();
+  }
+
+  /**
+   * Obtiene un nombre de fantasía repetido
+   * para pruebas de búsqueda con múltiples resultados.
+   *
+   * @returns Un nombre de fantasía repetido consumible por Merchant Search
+   */
+  public static async getRepeatedFantasyName(): Promise<RepeatedFantasyName> {
+    return this.repository.getRepeatedFantasyName();
   }
 }

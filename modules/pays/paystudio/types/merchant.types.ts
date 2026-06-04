@@ -9,4 +9,15 @@ export interface Merchant {
   merchantIdentifier: string;
   legalName: string;
 }
-``;
+
+/**
+ * Representa un nombre de fantasía repetido utilizado
+ * para pruebas de búsqueda con múltiples resultados.
+ *
+ * Este tipo permite abastecer escenarios donde se requiere
+ * validar reglas de negocio asociadas a listados,
+ * como ordenamiento ascendente o tope máximo.
+ */
+export interface RepeatedFantasyName {
+  fantasyName: string;
+}

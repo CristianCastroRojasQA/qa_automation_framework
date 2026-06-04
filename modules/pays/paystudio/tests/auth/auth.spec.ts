@@ -314,6 +314,41 @@ test.describe(
             );
           },
         );
+
+        test(
+          "TC-11: Formulario - Debe permitir el envío de credenciales al presionar la tecla Enter (Default Button)",
+          {
+            tag: ["@login", "@functional"],
+            annotation: [
+              { type: "case", description: "TC-11" },
+              {
+                type: "objective",
+                description:
+                  "Validar que el formulario responda a la directiva onkeypress (WebForm_FireDefaultButton) al presionar Enter en los campos de texto",
+              },
+              {
+                type: "coverage",
+                description:
+                  "Uso exclusivo del método loginWithEnter del POM para simular la presión física de la tecla Enter sin cliquear el botón",
+              },
+              { type: "component", description: "LoginPage" },
+            ],
+          },
+          async ({ page, loginPage }) => {
+            await loginPage.navigate(settings.paystudioUrl);
+
+            await loginPage.loginWithEnter(
+              settings.credentials.user,
+              settings.credentials.pass,
+            );
+
+            await expect(page).toHaveURL(/MainPage/);
+
+            logger.info(
+              "TC-11 validado correctamente: El método loginWithEnter del POM envió el formulario mediante la directiva nativa y redirigió a MainPage.",
+            );
+          },
+        );
       },
     );
 
