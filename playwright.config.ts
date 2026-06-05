@@ -20,6 +20,13 @@ const PROJECT = process.env.PROJECT || "BPAGOS";
 const IS_CI = !!process.env.CI;
 
 /**
+ * Configuración de ejecución de Playwright
+ * resuelta a través del flujo:
+ * .env -> settings -> playwright config
+ */
+const PLAYWRIGHT_CONFIG = settings.playwrightConfig;
+
+/**
  * Opciones compartidas de lanzamiento utilizadas por todos los proyectos.
  */
 const sharedLaunchOptions = {
@@ -35,10 +42,6 @@ const sharedLaunchOptions = {
  * - evita duplicación
  * - facilita mantenimiento
  * - mantiene consistencia entre módulos
- *
- * Nota: se omite la propiedad `channel` para usar el Chromium bundled
- * de Playwright (comportamiento por defecto). Si en el futuro se requiere
- * Google Chrome real instalado en el sistema, definir: channel: "chrome".
  */
 const sharedProjectConfig = {
   // En CI utiliza resolución fija para reducir diferencias visuales.
@@ -61,8 +64,8 @@ export default defineConfig({
   // Directorio raíz de pruebas automatizadas
   testDir: "./modules",
 
-  // Ejecuta pruebas secuencialmente para evitar conflictos entre ambientes.
-  fullyParallel: false,
+  // Ejecuta pruebas en paralelo solo si está habilitado desde .env
+  fullyParallel: PLAYWRIGHT_CONFIG.parallel,
 
   // Previene commits accidentales con pruebas marcadas como .only
   forbidOnly: IS_CI,
@@ -70,8 +73,15 @@ export default defineConfig({
   // Reintenta pruebas fallidas únicamente en entorno CI.
   retries: IS_CI ? 2 : 0,
 
-  // Limita workers en CI para mejorar estabilidad.
-  workers: IS_CI ? 1 : undefined,
+  // En CI se fuerza 1 worker por estabilidad.
+  // Fuera de CI:
+  // - si hay paralelismo, usa workers configurados
+  // - si no, ejecuta secuencialmente con 1 worker
+  workers: IS_CI
+    ? 1
+    : PLAYWRIGHT_CONFIG.parallel
+      ? PLAYWRIGHT_CONFIG.workers
+      : 1,
 
   // Tiempo máximo para cada prueba individual.
   timeout: 60_000,
@@ -97,7 +107,6 @@ export default defineConfig({
   // Configuración global de ejecución
   use: {
     // Captura pantallas únicamente cuando la prueba falla.
-    // Reduce almacenamiento y conserva evidencia útil.
     screenshot: {
       mode: "only-on-failure",
       fullPage: true,
@@ -115,9 +124,9 @@ export default defineConfig({
       },
     },
 
-    // Local: navegador visible para debugging.
-    // CI: headless para mayor velocidad y estabilidad.
-    headless: IS_CI,
+    // En CI siempre se fuerza headless por estabilidad.
+    // Fuera de CI se controla desde `.env`.
+    headless: IS_CI ? true : PLAYWRIGHT_CONFIG.headless,
 
     // Configuración regional en español.
     locale: "es-ES",
@@ -130,7 +139,6 @@ export default defineConfig({
 
     // Configuración de tiempo de espera para acciones y navegación.
     actionTimeout: 15_000,
-
     navigationTimeout: 30_000,
   },
 
@@ -141,6 +149,7 @@ export default defineConfig({
 
       use: {
         ...sharedProjectConfig,
+        browserName: PLAYWRIGHT_CONFIG.browser,
 
         // URL principal obtenida dinámicamente desde el sistema de configuración.
         baseURL: settings.paystudioUrl,
@@ -155,6 +164,7 @@ export default defineConfig({
 
       use: {
         ...sharedProjectConfig,
+        browserName: PLAYWRIGHT_CONFIG.browser,
 
         // URL principal del Portal de Comercio.
         baseURL: settings.portalUrl,
@@ -165,3 +175,4 @@ export default defineConfig({
     },
   ],
 });
+``;
