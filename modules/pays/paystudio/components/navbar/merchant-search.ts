@@ -15,37 +15,70 @@ import { logger } from "@utils/logger";
  * Responsabilidades encapsuladas:
  * - apertura del buscador global
  * - ingreso de criterios de búsqueda por código o nombre
- * - consulta y validación de resultados
- * - validación del historial de búsquedas visibles
- * - verificación del mensaje de estado vacío
+ * - consulta de resultados visibles
+ * - consulta de estados visibles del componente
  * - selección de comercios desde la lista de resultados
+ * - extracción de identificadores de comercios visibles
  *
  * Su objetivo es desacoplar los tests de la estructura interna del overlay
  * y exponer una API reutilizable, clara y mantenible para los flujos
  * funcionales asociados a búsqueda rápida de comercios.
  */
 export class MerchantSearch {
+  /**
+   * Referencia a la página activa de Playwright.
+   *
+   * Se utiliza para:
+   * - sincronización del render después de una búsqueda
+   * - estabilización visual del componente
+   */
   private readonly page: Page;
+
+  /**
+   * Locators internos del buscador.
+   *
+   * Criterio de diseño:
+   * - se utiliza el modal como scope raíz del componente
+   * - se encapsulan locators técnicos del DOM
+   * - no se acopla el componente a textos funcionales esperados
+   *
+   * La validación de mensajes y textos visibles debe realizarse en los specs.
+   */
+  private readonly modal: Locator;
   private readonly searchButton: Locator;
   private readonly searchInput: Locator;
-  private readonly resultItems: Locator;
-  private readonly resultsContainer: Locator;
-  private readonly resultsTitle: Locator;
-  private readonly noResultsMessage: Locator;
+  private readonly resultsContainers: Locator;
+  private readonly resultsTitles: Locator;
 
+  /**
+   * Inicializa los selectores asociados al buscador global de comercios.
+   *
+   * Se utiliza `app-merchant-search-modal` como contenedor raíz
+   * para acotar la búsqueda de elementos al contexto del componente.
+   *
+   * @param page Instancia activa de Playwright Page.
+   */
   constructor(page: Page) {
     this.page = page;
     this.searchButton = page.locator(".custom-dropdown-button");
+    this.modal = page.locator("app-merchant-search-modal");
 
-    const modal = page.locator("app-merchant-search-modal");
+    // Campo de texto principal del buscador
+    this.searchInput = this.modal.locator("input[name='search']");
 
-    this.searchInput = modal.locator("input[name='search']");
-    this.resultsContainer = modal.locator(".results-container");
-    this.resultsTitle = modal.locator(".results-title span");
-    this.resultItems = this.resultsContainer.locator(".results-list-element");
-    this.noResultsMessage = modal.locator(".results-title span");
+    // Contenedores y títulos visibles del componente
+    this.resultsContainers = this.modal.locator(".results-container");
+    this.resultsTitles = this.modal.locator(".results-title span");
   }
 
+  /**
+   * Abre el buscador global de comercios desde la interfaz principal.
+   *
+   * Flujo:
+   * 1. Ejecuta click sobre el disparador del buscador
+   * 2. Espera a que el campo de búsqueda quede visible
+   * 3. Registra trazabilidad básica del evento
+   */
   async open(): Promise<void> {
     logger.info("[MerchantSearch] Abriendo buscador global de comercios.");
 
@@ -55,6 +88,14 @@ export class MerchantSearch {
     logger.info("[MerchantSearch] Buscador global abierto correctamente.");
   }
 
+  /**
+   * Valida que el input de búsqueda esté listo para interacción.
+   *
+   * Comportamiento:
+   * - verifica visibilidad del campo
+   * - verifica que el input esté habilitado
+   * - aplica foco para asegurar disponibilidad de escritura
+   */
   async expectInputReady(): Promise<void> {
     await expect(this.searchInput).toBeVisible();
     await expect(this.searchInput).toBeEnabled();
@@ -66,6 +107,22 @@ export class MerchantSearch {
     );
   }
 
+  /**
+   * Ejecuta una búsqueda utilizando ENTER como disparador.
+   *
+   * Comportamiento:
+   * - limpia el campo antes de escribir
+   * - ingresa el criterio indicado
+   * - ejecuta ENTER como acción de búsqueda
+   * - espera estabilización del render
+   * - retorna la cantidad de resultados visibles en el estado activo
+   *
+   * Nota:
+   * Este método no valida textos esperados de negocio.
+   *
+   * @param value Criterio de búsqueda ingresado por el usuario
+   * @returns Cantidad de resultados visibles del estado actual
+   */
   async searchByEnter(value: string): Promise<number> {
     logger.info(
       `[MerchantSearch] Ejecutando búsqueda con criterio: [${value}]`,
@@ -75,9 +132,9 @@ export class MerchantSearch {
     await this.searchInput.fill(value);
     await this.searchInput.press("Enter");
 
-    await expect(this.resultsContainer).toBeVisible();
+    await this.page.waitForTimeout(500);
 
-    const count = await this.resultItems.count();
+    const count = await this.getVisibleResultItems().count();
 
     logger.info(
       `[MerchantSearch] Búsqueda ejecutada correctamente. Resultados obtenidos: [${count}]`,
@@ -87,23 +144,29 @@ export class MerchantSearch {
   }
 
   /**
-   * Valida el historial de búsquedas recientes visible en el buscador.
+   * Valida la disponibilidad del historial visible del buscador.
    *
    * Comportamiento:
-   * - espera a que el contenedor esté visible
-   * - valida que el título corresponda a "Búsquedas recientes:"
-   * - espera a que al menos un elemento del historial esté visible
-   * - cuenta los elementos renderizados
+   * - obtiene el contenedor visible del estado actual
+   * - verifica visibilidad del título
+   * - valida existencia de al menos un elemento visible
+   * - retorna la cantidad de elementos expuestos
    *
-   * @returns Número de elementos visibles en el historial
+   * Nota:
+   * El texto del título debe validarse desde el spec.
+   *
+   * @returns Número de elementos visibles en la lista activa del componente
    */
   async validateSearchHistory(): Promise<number> {
-    await expect(this.resultsContainer).toBeVisible();
-    await expect(this.resultsTitle).toContainText("Búsquedas recientes:");
+    const container = this.getVisibleResultsContainer();
+    const title = this.getVisibleTitle();
+    const items = this.getVisibleResultItems();
 
-    await expect(this.resultItems.first()).toBeVisible();
+    await expect(container).toBeVisible();
+    await expect(title).toBeVisible();
+    await expect(items.first()).toBeVisible();
 
-    const count = await this.resultItems.count();
+    const count = await items.count();
 
     logger.info(
       `[MerchantSearch] Historial de búsqueda visible. Elementos detectados: [${count}]`,
@@ -112,21 +175,86 @@ export class MerchantSearch {
     return count;
   }
 
-  async expectNoResultsMessage(text: string): Promise<void> {
-    await expect(this.resultsContainer).toBeVisible();
+  /**
+   * Obtiene el texto visible actual del título del buscador.
+   *
+   * Este método permite al spec decidir si el estado corresponde a:
+   * - historial
+   * - resultados
+   * - estado vacío
+   *
+   * @returns Texto limpio del título visible
+   */
+  async getVisibleTitleText(): Promise<string> {
+    const title = this.getVisibleTitle();
 
-    const msg = this.noResultsMessage;
+    await expect(title).toBeVisible();
 
-    await expect(msg).toBeVisible();
-    await expect(msg).toContainText(text);
+    const rawText = (await title.textContent()) ?? "";
+    const cleanText = rawText.trim();
 
     logger.info(
-      `[MerchantSearch] Mensaje de no resultados validado correctamente: [${text}]`,
+      `[MerchantSearch] Título visible detectado en el componente: [${cleanText}]`,
     );
+
+    return cleanText;
   }
 
+  /**
+   * Obtiene el mensaje visible del estado actual del componente.
+   *
+   * Este método no valida negocio; únicamente devuelve
+   * el texto visible asociado al estado actual del buscador.
+   *
+   * @returns Texto limpio visible en el encabezado del estado actual
+   */
+  async getNoResultsMessage(): Promise<string> {
+    const title = this.getVisibleTitle();
+
+    await expect(title).toBeVisible();
+
+    const rawText = (await title.textContent()) ?? "";
+    const cleanText = rawText.trim();
+
+    logger.info(
+      `[MerchantSearch] Mensaje visible detectado en estado actual: [${cleanText}]`,
+    );
+
+    return cleanText;
+  }
+
+  /**
+   * Indica si existe un título visible en el estado actual del buscador.
+   *
+   * @returns `true` si el título visible está presente; de lo contrario `false`
+   */
+  async isTitleVisible(): Promise<boolean> {
+    return await this.getVisibleTitle().isVisible();
+  }
+
+  /**
+   * Obtiene los textos visibles de los resultados actuales del buscador.
+   *
+   * @returns Lista de textos visibles en los resultados activos
+   */
+  async getResultTexts(): Promise<string[]> {
+    const container = this.getVisibleResultsContainer();
+    const items = this.getVisibleResultItems();
+
+    await expect(container).toBeVisible();
+
+    const texts = await items.allTextContents();
+
+    return texts.map((text) => text.trim()).filter(Boolean);
+  }
+
+  /**
+   * Selecciona un comercio de la lista de resultados según su posición.
+   *
+   * @param index Posición del resultado a seleccionar
+   */
   async selectResultByIndex(index: number): Promise<void> {
-    const item = this.resultItems.nth(index);
+    const item = this.getVisibleResultItems().nth(index);
 
     await expect(item).toBeVisible();
     await item.click();
@@ -136,24 +264,64 @@ export class MerchantSearch {
     );
   }
 
+  /**
+   * Extrae los identificadores de comercio desde los resultados visibles.
+   *
+   * @returns Lista de identificadores detectados en resultados actuales
+   */
   async getMerchantIdsFromResults(): Promise<number[]> {
-    const items = await this.resultItems.allTextContents();
+    const items = await this.getVisibleResultItems().allTextContents();
 
     const ids = items
-      .map((t) => {
-        const match = t.match(/#(\d+)/);
+      .map((text) => {
+        const match = text.match(/#(\d+)/);
         return match ? Number(match[1]) : null;
       })
-      .filter((x): x is number => x !== null);
+      .filter((value): value is number => value !== null);
 
     logger.info(
-      `[MerchantSearch] IDs de comercios extraídos desde resultados: [${ids.join(", ")}]`,
+      `[MerchantSearch] IDs de comercios extraídos desde resultados activos: [${ids.join(", ")}]`,
     );
 
     return ids;
   }
 
+  /**
+   * Indica si el contenedor de resultados activo se encuentra visible.
+   *
+   * @returns `true` si el contenedor visible está presente; de lo contrario `false`
+   */
   async isResultsContainerVisible(): Promise<boolean> {
-    return await this.resultsContainer.isVisible();
+    return await this.getVisibleResultsContainer().isVisible();
+  }
+
+  /**
+   * Obtiene el primer contenedor visible del componente.
+   *
+   * Nota:
+   * El buscador puede mostrar distintos estados en distintos contenedores.
+   * Este helper retorna el primero que realmente se encuentra visible.
+   */
+  private getVisibleResultsContainer(): Locator {
+    return this.resultsContainers.filter({ visible: true }).first();
+  }
+
+  /**
+   * Obtiene el primer título visible dentro del buscador.
+   *
+   * Este helper permite al spec validar el estado funcional
+   * sin acoplar el POM a mensajes esperados de negocio.
+   */
+  private getVisibleTitle(): Locator {
+    return this.resultsTitles.filter({ visible: true }).first();
+  }
+
+  /**
+   * Obtiene los elementos visibles de la lista activa del buscador.
+   *
+   * El cálculo siempre se deriva del contenedor actualmente visible.
+   */
+  private getVisibleResultItems(): Locator {
+    return this.getVisibleResultsContainer().locator(".results-list-element");
   }
 }

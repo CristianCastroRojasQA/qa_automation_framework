@@ -155,23 +155,25 @@ test.describe(
               {
                 type: "coverage",
                 description:
-                  "Apertura del buscador, verificación de visibilidad del contenedor de resultados y validación de disponibilidad del historial inicial",
+                  "Apertura del buscador, verificación de título visible del historial y validación de cantidad de elementos expuestos",
               },
               { type: "component", description: "MerchantSearch" },
               { type: "requirement", description: "US 373109" },
             ],
           },
-
           async ({ navbar, page }) => {
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
+
+            const title = await merchantSearch.getVisibleTitleText();
             const historyCount = await merchantSearch.validateSearchHistory();
 
+            expect(title).toContain(MerchantSearchConstants.HISTORY_TITLE);
             expect(historyCount).toBeGreaterThan(0);
 
             logger.info(
-              `TC-03 validado correctamente: el historial del buscador está visible y se detectaron [${historyCount}] elementos.`,
+              `TC-03 validado correctamente: el historial del buscador está visible con título [${title}] y se detectaron [${historyCount}] elementos.`,
             );
           },
         );
@@ -199,7 +201,7 @@ test.describe(
               {
                 type: "coverage",
                 description:
-                  "Apertura del buscador, ejecución de búsqueda por nombre y conteo de resultados visibles",
+                  "Apertura del buscador, ejecución de búsqueda por nombre y validación de resultados visibles",
               },
               { type: "component", description: "MerchantSearch" },
               { type: "requirement", description: "US 373109" },
@@ -211,14 +213,26 @@ test.describe(
             const merchantSearch = new MerchantSearch(page);
             const merchant = await MerchantProvider.getValidMerchant();
 
-            const count = await merchantSearch.searchByEnter(
-              merchant.legalName,
+            const searchTerm = merchant.fantasyName;
+
+            await merchantSearch.searchByEnter(searchTerm);
+
+            const title = await merchantSearch.getVisibleTitleText();
+            const results = await merchantSearch.getResultTexts();
+
+            expect(title).toContain(MerchantSearchConstants.RESULTS_TITLE);
+            expect(results.length).toBeGreaterThan(0);
+
+            const containsExpectedMerchant = results.some(
+              (text) =>
+                text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                text.includes(`#${merchant.merchantIdentifier}`),
             );
 
-            expect(count).toBeGreaterThan(0);
+            expect(containsExpectedMerchant).toBeTruthy();
 
             logger.info(
-              `TC-04 validado correctamente: la búsqueda por nombre retornó [${count}] resultados para el comercio [${merchant.legalName}].`,
+              `TC-04 validado correctamente: la búsqueda por nombre [${searchTerm}] mostró resultados visibles asociados al comercio [${merchant.merchantIdentifier}].`,
             );
           },
         );
@@ -237,7 +251,7 @@ test.describe(
               {
                 type: "coverage",
                 description:
-                  "Apertura del buscador, ejecución de búsqueda por código y validación de resultados obtenidos",
+                  "Apertura del buscador, ejecución de búsqueda por código y validación de resultados visibles",
               },
               { type: "component", description: "MerchantSearch" },
               { type: "requirement", description: "US 373109" },
@@ -249,14 +263,24 @@ test.describe(
             const merchantSearch = new MerchantSearch(page);
             const merchant = await MerchantProvider.getValidMerchant();
 
-            const count = await merchantSearch.searchByEnter(
-              merchant.merchantIdentifier,
+            const searchTerm = merchant.merchantIdentifier;
+
+            await merchantSearch.searchByEnter(searchTerm);
+
+            const title = await merchantSearch.getVisibleTitleText();
+            const results = await merchantSearch.getResultTexts();
+
+            expect(title).toContain(MerchantSearchConstants.RESULTS_TITLE);
+            expect(results.length).toBeGreaterThan(0);
+
+            const containsExpectedMerchant = results.some((text) =>
+              text.includes(`#${merchant.merchantIdentifier}`),
             );
 
-            expect(count).toBeGreaterThan(0);
+            expect(containsExpectedMerchant).toBeTruthy();
 
             logger.info(
-              `TC-05 validado correctamente: la búsqueda por código retornó [${count}] resultados para el comercio [${merchant.merchantIdentifier}].`,
+              `TC-05 validado correctamente: la búsqueda por código [${searchTerm}] mostró resultados visibles asociados al comercio [${merchant.merchantIdentifier}].`,
             );
           },
         );
@@ -299,7 +323,9 @@ test.describe(
               merchantSearchData.invalidSearches.nonExistingMerchant,
             );
 
-            await merchantSearch.expectNoResultsMessage(
+            const message = await merchantSearch.getNoResultsMessage();
+
+            expect(message).toContain(
               MerchantSearchConstants.NO_RESULTS_MESSAGE,
             );
 
@@ -393,9 +419,12 @@ test.describe(
 
             await merchantSearch.searchByEnter(repeatedFantasyName.fantasyName);
 
+            const title = await merchantSearch.getVisibleTitleText();
             const ids = await merchantSearch.getMerchantIdsFromResults();
             const sorted = [...ids].sort((a, b) => a - b);
 
+            expect(title).toContain(MerchantSearchConstants.RESULTS_TITLE);
+            expect(ids.length).toBeGreaterThan(0);
             expect(ids).toEqual(sorted);
 
             logger.info(
@@ -418,7 +447,7 @@ test.describe(
               {
                 type: "coverage",
                 description:
-                  "Ejecución de búsqueda genérica y validación del límite máximo de resultados",
+                  "Ejecución de búsqueda con múltiples coincidencias y validación del límite máximo de resultados",
               },
               { type: "component", description: "MerchantSearch" },
               { type: "requirement", description: "US 373109" },
@@ -428,19 +457,24 @@ test.describe(
             await navbar.openMerchantSearch();
 
             const merchantSearch = new MerchantSearch(page);
-            const merchant = await MerchantProvider.getValidMerchant();
+            const repeatedFantasyName =
+              await MerchantProvider.getRepeatedFantasyName();
 
-            const broadTerm = merchant.legalName.split(" ")[0];
+            const searchTerm = repeatedFantasyName.fantasyName;
 
-            const count = await merchantSearch.searchByEnter(broadTerm);
+            await merchantSearch.searchByEnter(searchTerm);
 
-            expect(count).toBeGreaterThan(0);
-            expect(count).toBeLessThanOrEqual(
+            const title = await merchantSearch.getVisibleTitleText();
+            const results = await merchantSearch.getResultTexts();
+
+            expect(title).toContain(MerchantSearchConstants.RESULTS_TITLE);
+            expect(results.length).toBeGreaterThan(0);
+            expect(results.length).toBeLessThanOrEqual(
               MerchantSearchConstants.MAX_RESULTS,
             );
 
             logger.info(
-              `TC-09 validado correctamente: la búsqueda retornó [${count}] resultados y respetó el máximo permitido de [${MerchantSearchConstants.MAX_RESULTS}].`,
+              `TC-09 validado correctamente: la búsqueda por nombre repetido [${searchTerm}] retornó [${results.length}] resultados y respetó el máximo permitido de [${MerchantSearchConstants.MAX_RESULTS}].`,
             );
           },
         );
@@ -513,7 +547,7 @@ test.describe(
               {
                 type: "coverage",
                 description:
-                  "Envío de payload SQL Injection y validación de ausencia de resultados",
+                  'Envío de payload SQL Injection, validación de permanencia en MainPage y verificación del mensaje "Comercio no encontrado"',
               },
               { type: "component", description: "MerchantSearch" },
               { type: "requirement", description: "US 373109" },
@@ -524,14 +558,19 @@ test.describe(
 
             const merchantSearch = new MerchantSearch(page);
 
-            const count = await merchantSearch.searchByEnter(
+            await merchantSearch.searchByEnter(
               securityPayloads.sqlInjection.user,
             );
 
-            expect(count).toBe(0);
+            const message = await merchantSearch.getNoResultsMessage();
+
+            await expect(page).toHaveURL(/MainPage/);
+            expect(message).toContain(
+              MerchantSearchConstants.NO_RESULTS_MESSAGE,
+            );
 
             logger.info(
-              "TC-11 validado correctamente: el payload SQL Injection no generó resultados válidos.",
+              `TC-11 validado correctamente: el payload SQL Injection no generó resultados válidos y mostró el mensaje esperado [${MerchantSearchConstants.NO_RESULTS_MESSAGE}].`,
             );
           },
         );
