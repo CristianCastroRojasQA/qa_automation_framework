@@ -16,16 +16,20 @@ export const MerchantQueries = {
    * Obtiene el primer comercio válido disponible.
    *
    * Criterio:
-   * - requiere identificador y nombre legal no nulos
+   * - requiere identificador, nombre legal y nombre de fantasía no nulos
+   * - evita nombres de fantasía vacíos
    * - ordena por `MERCHANT_IDENTIFIER`
    */
   getFirstValidMerchant: `
     SELECT TOP 1
         MERCHANT_IDENTIFIER AS merchantIdentifier,
-        LEGAL_NAME AS legalName
+        LEGAL_NAME AS legalName,
+        FANTASY_NAME AS fantasyName
     FROM AMR_MERCHANT
     WHERE MERCHANT_IDENTIFIER IS NOT NULL
       AND LEGAL_NAME IS NOT NULL
+      AND FANTASY_NAME IS NOT NULL
+      AND LTRIM(RTRIM(FANTASY_NAME)) <> ''
     ORDER BY MERCHANT_IDENTIFIER
   `,
 
