@@ -23,6 +23,18 @@ export const MerchantSearchConstants = {
   NO_RESULTS_MESSAGE: "Comercio no encontrado",
 
   /**
+   * Título mostrado cuando el buscador
+   * exhibe el historial de búsquedas recientes.
+   */
+  HISTORY_TITLE: "Búsquedas recientes:",
+
+  /**
+   * Título mostrado cuando el buscador
+   * exhibe resultados activos de búsqueda.
+   */
+  RESULTS_TITLE: "Comercios:",
+
+  /**
    * Límite máximo de resultados permitido
    * por la regla funcional del buscador.
    */

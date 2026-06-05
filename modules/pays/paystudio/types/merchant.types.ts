@@ -8,6 +8,7 @@
 export interface Merchant {
   merchantIdentifier: string;
   legalName: string;
+  fantasyName: string;
 }
 
 /**
