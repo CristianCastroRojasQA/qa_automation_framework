@@ -45,3 +45,35 @@ export interface DatabaseConfig {
   user: string;
   password: string;
 }
+
+/**
+ * Navegadores soportados por Playwright
+ * dentro del framework.
+ *
+ * Se restringe a los motores provistos
+ * directamente por Playwright:
+ * - chromium
+ * - firefox
+ * - webkit
+ */
+export type PlaywrightBrowser = "chromium" | "firefox" | "webkit";
+
+/**
+ * Configuración de ejecución de Playwright.
+ *
+ * Centraliza las opciones principales
+ * controladas desde variables de entorno:
+ * - paralelismo
+ * - cantidad de workers
+ * - ejecución headless
+ * - navegador a utilizar
+ *
+ * Este contrato permite mantener tipado fuerte
+ * entre `.env`, `settings.ts` y `playwright.config.ts`.
+ */
+export interface PlaywrightExecutionConfig {
+  parallel: boolean;
+  workers?: number;
+  headless: boolean;
+  browser: PlaywrightBrowser;
+}

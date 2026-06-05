@@ -2,6 +2,8 @@ import * as dotenv from "dotenv";
 import {
   DatabaseConfig,
   LoggerConfig,
+  PlaywrightBrowser,
+  PlaywrightExecutionConfig,
   ProjectCredentials,
   UserRole,
 } from "@types-fw/settings.types";
@@ -63,15 +65,12 @@ class Settings {
    * - Emite log inicial para trazabilidad
    */
   private constructor() {
-    // Normalización defensiva de variables de entorno
     const domain = (process.env.DOMAIN || "PAYS").toUpperCase();
     const project = (process.env.PROJECT || "BPAGOS").toUpperCase();
     const env = (process.env.ENV || "CERT").toUpperCase();
 
-    // Construcción del prefijo base utilizado en toda la resolución
     this.PREFIX = `${domain}_${project}_${env}`;
 
-    // Log informativo de arranque (útil para debugging y auditoría)
     console.log("---------------------------------------------------------");
     console.log("FRAMEWORK QA: Configuración cargada con éxito");
     console.log(`Proyecto Actual: [${project}] | Ambiente: [${env}]`);
@@ -156,14 +155,6 @@ class Settings {
    * - <PREFIX>_DB_NAME
    * - <PREFIX>_DB_USER
    * - <PREFIX>_DB_PASS
-   *
-   * Ejemplo:
-   * PAYS_BPAGOS_CERT_DB_SERVER
-   *
-   * Uso típico:
-   * - repositorios
-   * - providers dinámicos
-   * - consultas de soporte para pruebas
    */
   get database(): DatabaseConfig {
     return {
@@ -175,6 +166,50 @@ class Settings {
   }
 
   /**
+   * Configuración de ejecución de Playwright.
+   *
+   * Fuente:
+   * - PLAYWRIGHT_PARALLEL
+   * - PLAYWRIGHT_WORKERS
+   * - PLAYWRIGHT_HEADLESS
+   * - PLAYWRIGHT_BROWSER
+   *
+   * Este getter centraliza la lectura de variables
+   * de entorno relacionadas con la ejecución del runner,
+   * manteniendo un contrato tipado único hacia `playwright.config.ts`.
+   */
+  get playwrightConfig(): PlaywrightExecutionConfig {
+    const rawBrowser = (process.env.PLAYWRIGHT_BROWSER || "chromium")
+      .trim()
+      .toLowerCase();
+
+    const browser: PlaywrightBrowser =
+      rawBrowser === "firefox" || rawBrowser === "webkit"
+        ? rawBrowser
+        : "chromium";
+
+    const rawWorkers = process.env.PLAYWRIGHT_WORKERS;
+    const parsedWorkers = rawWorkers ? Number(rawWorkers) : undefined;
+
+    return {
+      parallel:
+        (process.env.PLAYWRIGHT_PARALLEL || "false").trim().toLowerCase() ===
+        "true",
+
+      workers:
+        parsedWorkers !== undefined && !Number.isNaN(parsedWorkers)
+          ? parsedWorkers
+          : undefined,
+
+      headless:
+        (process.env.PLAYWRIGHT_HEADLESS || "false").trim().toLowerCase() ===
+        "true",
+
+      browser,
+    };
+  }
+
+  /**
    * Obtiene credenciales del portal según el rol especificado.
    *
    * @param role Rol funcional del usuario (default: superadmin)
@@ -182,10 +217,6 @@ class Settings {
    * Resolución dinámica:
    * - <PREFIX>_PORTAL_<ROLE>_USER
    * - <PREFIX>_PORTAL_<ROLE>_PASS
-   *
-   * @example
-   * getPortalCredentials("superadmin")
-   * -> PAYS_BPAGOS_CERT_PORTAL_SUPERADMIN_USER
    */
   public getPortalCredentials(
     role: UserRole = "superadmin",
@@ -202,21 +233,10 @@ class Settings {
    * Resuelve una variable de entorno basada en el prefijo dinámico.
    *
    * @param suffix Sufijo de la variable a resolver
-   *
-   * Proceso:
-   * 1. Construye la clave completa: <PREFIX>_<SUFFIX>
-   * 2. Busca en process.env
-   * 3. Lanza error si no existe (fail-fast)
-   *
-   * @example
-   * getEnvVar("URL")
-   * -> PAYS_BPAGOS_CERT_URL
-   *
    * @throws Error Si la variable no está definida
    */
   private getEnvVar(suffix: string): string {
     const key = `${this.PREFIX}_${suffix}`;
-
     const value = process.env[key];
 
     if (!value) {
