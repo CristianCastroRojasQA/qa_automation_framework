@@ -4,35 +4,13 @@ import { Merchant, RepeatedFantasyName } from "@paystudio/types/merchant.types";
 import { logger } from "@utils/logger";
 
 /**
- * Repository de acceso a datos del dominio Merchant.
- *
- * Contexto:
- * Esta clase encapsula consultas relacionadas con comercios
- * dentro de PayStudio y desacopla el acceso a base de datos
- * del resto de capas del framework.
- *
- * Responsabilidades:
- * - ejecutar consultas del dominio Merchant
- * - mapear resultados a tipos del dominio
- * - exponer métodos reutilizables para providers o tests
- *
- * Consideraciones:
- * - no contiene lógica de UI
- * - no contiene validaciones funcionales de negocio complejas
- * - delega la conexión técnica al `SqlServerClient`
- * - delega el SQL reutilizable al catálogo `MerchantQueries`
+ * Repository Merchant
  */
 export class MerchantRepository {
-  /**
-   * Cliente técnico de acceso a SQL Server.
-   */
   private readonly db = new SqlServerClient();
 
   /**
-   * Obtiene un comercio válido y disponible desde la base de datos.
-   *
-   * @returns Un comercio válido para consumo del framework
-   * @throws Error si no se encuentra ningún comercio disponible
+   * Obtiene un comercio válido
    */
   public async getMerchant(): Promise<Merchant> {
     logger.info("[MerchantRepository] Consultando comercio disponible.");
@@ -61,11 +39,7 @@ export class MerchantRepository {
   }
 
   /**
-   * Obtiene un nombre de fantasía repetido para pruebas
-   * que requieren múltiples resultados en el buscador.
-   *
-   * @returns Un nombre de fantasía repetido consumible por Merchant Search
-   * @throws Error si no se encuentra ningún nombre repetido
+   * Obtiene un nombre de fantasía repetido
    */
   public async getRepeatedFantasyName(): Promise<RepeatedFantasyName> {
     logger.info(
