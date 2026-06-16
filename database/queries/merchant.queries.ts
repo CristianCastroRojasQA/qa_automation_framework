@@ -1,25 +1,9 @@
 /**
- * Catálogo de consultas SQL del dominio Merchant.
- *
- * Contexto:
- * Este archivo centraliza queries reutilizables relacionadas
- * con comercios dentro del framework.
- *
- * Beneficios:
- * - desacopla SQL del repository
- * - mejora mantenibilidad
- * - facilita reutilización de consultas
- * - simplifica lectura de la capa de acceso a datos
+ * Queries del dominio Merchant.
+ * Centraliza SQL reutilizable.
  */
 export const MerchantQueries = {
-  /**
-   * Obtiene el primer comercio válido disponible.
-   *
-   * Criterio:
-   * - requiere identificador, nombre legal y nombre de fantasía no nulos
-   * - evita nombres de fantasía vacíos
-   * - ordena por `MERCHANT_IDENTIFIER`
-   */
+  // Primer comercio válido
   getFirstValidMerchant: `
     SELECT TOP 1
         MERCHANT_IDENTIFIER AS merchantIdentifier,
@@ -33,19 +17,7 @@ export const MerchantQueries = {
     ORDER BY MERCHANT_IDENTIFIER
   `,
 
-  /**
-   * Obtiene un nombre de fantasía repetido para pruebas
-   * de búsqueda con múltiples resultados.
-   *
-   * Criterio:
-   * - requiere `FANTASY_NAME` no nulo ni vacío
-   * - agrupa por nombre de fantasía
-   * - retorna solo nombres repetidos
-   *
-   * Uso típico:
-   * - pruebas de ordenamiento ASC
-   * - validación de reglas de negocio sobre múltiples resultados
-   */
+  // Nombre de fantasía repetido
   getRepeatedFantasyName: `
     SELECT TOP 1
         FANTASY_NAME AS fantasyName
