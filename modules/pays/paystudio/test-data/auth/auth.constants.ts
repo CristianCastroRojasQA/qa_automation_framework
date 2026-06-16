@@ -1,25 +1,46 @@
 /**
- * Mensajes esperados en los flujos de autenticación de PayStudio.
- *
- * Centraliza los textos utilizados en validaciones de UI y backend:
- * - reduce duplicación en Page Objects y tests
- * - facilita mantenimiento cuando el backend cambia copy
- * - asegura consistencia entre specs y validaciones
- *
- * Nota:
- * Estos valores representan el comportamiento esperado del sistema,
- * no deben ser modificados sin validación del equipo funcional.
+ * Mensajes de autenticación
  */
 export const AuthMessages = {
-  /** Mensaje mostrado al cerrar sesión exitosamente. */
-  LOGOUT_SUCCESS: "ha cerrado la sesión con éxito.",
+  BRAND_PAGE: "PayStudio Web",
 
-  /** Mensaje mostrado cuando la sesión actual ya no es válida. */
+  INVALID_CREDENTIALS: "Usuario y/o contraseña inválidos",
+  USER_NOT_FOUND: "Usuario no encontrado en el sistema",
+  USER_EMPTY: "Debe ingresar el nombre de usuario",
+
+  /**
+   * Mensajes de: "Debe ingresar la contraseña"
+   */
+  PASSWORD_EMPTY: "Debe ingresar la contraseña",
+
+  /**
+   * Mensajes de autenticación
+   */
+  LOGOUT_SUCCESS: "ha cerrado la sesión con éxito.",
   SESSION_INVALID: "La sesión actual no es válida.",
 
-  /** Mensaje mostrado cuando las credenciales son inválidas. */
-  INVALID_CREDENTIALS: "Usuario y/o contraseña inválidos",
+  CHANGE_PASSWORD_TITLE: "Cambiar la contraseña",
+  CHANGE_PASSWORD_LOGIN_NAME_LABEL: "Nombre de Login:",
+  CHANGE_PASSWORD_FULL_NAME_LABEL: "Nombre Completo:",
 
-  /** Mensaje mostrado cuando el usuario no existe en el sistema. */
-  USER_NOT_FOUND: "Usuario no encontrado en el sistema",
+  CHANGE_PASSWORD_ERROR_SUMMARY_TITLE: "Han ocurrido errores!",
+  CHANGE_PASSWORD_REQUIRED_FIELD: "Dato requerido",
+
+  CHANGE_PASSWORD_INVALID_CURRENT_PASSWORD:
+    "La contraseña suministrada no es correcta",
+
+  CHANGE_PASSWORD_PASSWORDS_DO_NOT_MATCH:
+    "Las contraseñas ingresadas no coinciden",
+
+  CHANGE_PASSWORD_INVALID_FORMAT:
+    "La nueva contraseña tiene un formato invalido",
+
+  CHANGE_PASSWORD_LEN:
+    "El largo de la contraseña debe estar entre 8 y 18 caracteres",
+
+  CHANGE_PASSWORD_REUSED_PASSWORD:
+    "No puede reutilizar una contraseña anterior",
+
+  CHANGE_PASSWORD_MIN_DAYS_RESTRICTION:
+    "Ya has cambiado tu contraseña en los úlimos 1 días",
 } as const;

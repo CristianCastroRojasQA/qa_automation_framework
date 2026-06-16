@@ -8,62 +8,19 @@ import {
   UserRole,
 } from "@types-fw/settings.types";
 
-// Carga inicial de variables de entorno desde el archivo .env
+// Cargar variables de entorno
 dotenv.config();
 
 /**
- * Punto central de acceso a la configuración del framework.
- *
- * Responsabilidades:
- * - Resolver variables de entorno de forma dinámica
- * - Estandarizar la convención de nombres basada en entorno
- * - Proveer acceso tipado a configuraciones críticas
- *
- * Convención utilizada para las variables:
- * DOMAIN_PROJECT_ENV_VARIABLE
- *
- * Ejemplo real:
- * PAYS_BPAGOS_CERT_URL
- *
- * Este diseño permite:
- * - Soporte multi-proyecto
- * - Soporte multi-ambiente
- * - Evitar hardcoding de configuraciones
+ * Configuración central del framework (Singleton).
  */
 class Settings {
-  /**
-   * Prefijo dinámico utilizado para resolver variables de entorno.
-   *
-   * Se construye en base a:
-   * DOMAIN + PROJECT + ENV
-   *
-   * Ejemplo:
-   * PAYS_BPAGOS_CERT
-   */
+  // Prefijo dinámico: DOMAIN_PROJECT_ENV
   private readonly PREFIX: string;
 
-  /**
-   * Instancia única (patrón Singleton).
-   *
-   * Garantiza un único punto de acceso consistente
-   * a la configuración durante el ciclo de vida del framework.
-   */
+  // Instancia única
   private static _instance: Settings;
 
-  /**
-   * Inicializa la configuración base del framework.
-   *
-   * Orígenes:
-   * - DOMAIN  -> Dominio funcional (ej: PAYS)
-   * - PROJECT -> Proyecto (ej: BPAGOS)
-   * - ENV     -> Ambiente (ej: CERT, QA, PROD)
-   *
-   * Comportamiento:
-   * - Aplica valores por defecto si no existen variables
-   * - Normaliza a mayúsculas para evitar inconsistencias
-   * - Construye el prefijo dinámico de resolución
-   * - Emite log inicial para trazabilidad
-   */
   private constructor() {
     const domain = (process.env.DOMAIN || "PAYS").toUpperCase();
     const project = (process.env.PROJECT || "BPAGOS").toUpperCase();
@@ -78,12 +35,7 @@ class Settings {
     console.log("---------------------------------------------------------");
   }
 
-  /**
-   * Acceso global a la instancia de configuración.
-   *
-   * Implementa inicialización lazy (lazy loading),
-   * creando la instancia solo cuando es requerida.
-   */
+  // Acceso global
   public static get instance(): Settings {
     if (!Settings._instance) {
       Settings._instance = new Settings();
@@ -91,36 +43,17 @@ class Settings {
     return Settings._instance;
   }
 
-  /**
-   * URL principal de PayStudio (BackOffice).
-   *
-   * Fuente:
-   * VARIABLE: <PREFIX>_URL
-   */
+  // URL PayStudio
   get paystudioUrl(): string {
     return this.getEnvVar("URL");
   }
 
-  /**
-   * URL del portal de comercio.
-   *
-   * Fuente:
-   * VARIABLE: <PREFIX>_PORTAL_URL
-   */
+  // URL Portal
   get portalUrl(): string {
     return this.getEnvVar("PORTAL_URL");
   }
 
-  /**
-   * Credenciales principales asociadas al proyecto actual.
-   *
-   * Fuente:
-   * - <PREFIX>_USER
-   * - <PREFIX>_PASS
-   *
-   * Uso típico:
-   * Autenticación en BackOffice (PayStudio)
-   */
+  // Credenciales principales
   get credentials(): ProjectCredentials {
     return {
       user: this.getEnvVar("USER"),
@@ -128,15 +61,15 @@ class Settings {
     };
   }
 
-  /**
-   * Configuración consolidada del sistema de logging.
-   *
-   * Consideraciones:
-   * - Utiliza valores de entorno cuando están disponibles
-   * - Define valores por defecto para evitar fallos por configuración incompleta
-   *
-   * No depende del prefijo dinámico, ya que aplica a nivel global del framework.
-   */
+  // Credenciales para pruebas de inactividad (TC-14)
+  get authInactivityCredentials(): ProjectCredentials {
+    return {
+      user: this.getEnvVar("AUTH_INACTIVITY_USER"),
+      pass: this.getEnvVar("AUTH_INACTIVITY_PASS"),
+    };
+  }
+
+  // Configuración de logs
   get loggerConfig(): LoggerConfig {
     return {
       level: process.env.LOG_LEVEL || "info",
@@ -146,16 +79,7 @@ class Settings {
     };
   }
 
-  /**
-   * Configuración de conexión a base de datos
-   * asociada al proyecto y ambiente activos.
-   *
-   * Fuente:
-   * - <PREFIX>_DB_SERVER
-   * - <PREFIX>_DB_NAME
-   * - <PREFIX>_DB_USER
-   * - <PREFIX>_DB_PASS
-   */
+  // Configuración DB
   get database(): DatabaseConfig {
     return {
       server: this.getEnvVar("DB_SERVER"),
@@ -165,19 +89,7 @@ class Settings {
     };
   }
 
-  /**
-   * Configuración de ejecución de Playwright.
-   *
-   * Fuente:
-   * - PLAYWRIGHT_PARALLEL
-   * - PLAYWRIGHT_WORKERS
-   * - PLAYWRIGHT_HEADLESS
-   * - PLAYWRIGHT_BROWSER
-   *
-   * Este getter centraliza la lectura de variables
-   * de entorno relacionadas con la ejecución del runner,
-   * manteniendo un contrato tipado único hacia `playwright.config.ts`.
-   */
+  // Configuración Playwright
   get playwrightConfig(): PlaywrightExecutionConfig {
     const rawBrowser = (process.env.PLAYWRIGHT_BROWSER || "chromium")
       .trim()
@@ -209,15 +121,7 @@ class Settings {
     };
   }
 
-  /**
-   * Obtiene credenciales del portal según el rol especificado.
-   *
-   * @param role Rol funcional del usuario (default: superadmin)
-   *
-   * Resolución dinámica:
-   * - <PREFIX>_PORTAL_<ROLE>_USER
-   * - <PREFIX>_PORTAL_<ROLE>_PASS
-   */
+  // Credenciales Portal por rol
   public getPortalCredentials(
     role: UserRole = "superadmin",
   ): ProjectCredentials {
@@ -229,20 +133,14 @@ class Settings {
     };
   }
 
-  /**
-   * Resuelve una variable de entorno basada en el prefijo dinámico.
-   *
-   * @param suffix Sufijo de la variable a resolver
-   * @throws Error Si la variable no está definida
-   */
+  // Resolver variable dinámica
   private getEnvVar(suffix: string): string {
     const key = `${this.PREFIX}_${suffix}`;
     const value = process.env[key];
 
     if (!value) {
       throw new Error(
-        `ERROR DE CONFIGURACIÓN: La clave [${key}] no está definida en el archivo .env. ` +
-          `Verifica DOMAIN, PROJECT y ENV.`,
+        `ERROR DE CONFIGURACIÓN: Falta la clave [${key}] en .env`,
       );
     }
 
@@ -250,10 +148,5 @@ class Settings {
   }
 }
 
-/**
- * Instancia única expuesta para consumo global.
- *
- * Debe ser utilizada como única fuente de configuración
- * en todo el framework para garantizar consistencia.
- */
+// Instancia global
 export const settings = Settings.instance;

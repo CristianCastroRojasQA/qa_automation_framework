@@ -2,13 +2,9 @@ import { SqlServerClient } from "@database/sqlserver.client";
 import { logger } from "@utils/logger";
 import { test, expect } from "@playwright/test";
 
+
 /**
- * Suite de pruebas técnicas para validar conectividad
- * del framework con SQL Server.
- *
- * Contexto:
- * Estos casos verifican la disponibilidad básica de la conexión
- * utilizada por repositories y providers que dependen de datos dinámicos.
+ * Suite de Infraestructura - Base de Datos
  */
 test.describe("Database Connection", () => {
   test("TC-01: Debe conectarse correctamente a SQL Server", async () => {
