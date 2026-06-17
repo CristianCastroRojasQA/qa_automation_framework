@@ -13,4 +13,11 @@ export class UserProvider {
   public static async getUserByUsername(username: string): Promise<User> {
     return this.repository.getUserByUsername(username);
   }
+
+  /**
+   * Desbloquea un usuario por username
+   */
+  public static async unlockUserByUsername(username: string): Promise<void> {
+    await this.repository.unlockUserByUsername(username);
+  }
 }
