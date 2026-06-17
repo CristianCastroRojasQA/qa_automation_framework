@@ -1,6 +1,8 @@
 import { Locator, Page } from "@playwright/test";
 import { logger } from "@utils/logger";
 
+const changePasswordPageLogger = logger.child({ module: "ChangePasswordPage" });
+
 /**
  * Page Object Model de Change Password Page
  */
@@ -88,7 +90,7 @@ export class ChangePasswordPage {
     await this.repeatPasswordInput.fill(repeatPassword);
     await this.confirm();
 
-    logger.info("[ChangePasswordPage] Campos de contraseña diligenciados");
+    changePasswordPageLogger.info("Campos de contraseña diligenciados");
   }
 
   /**
@@ -101,8 +103,8 @@ export class ChangePasswordPage {
     await this.fillPasswords("", newPassword, repeatPassword);
     await this.confirm();
 
-    logger.info(
-      "[ChangePasswordPage] Se confirmó el formulario sin diligenciar la contraseña actual",
+    changePasswordPageLogger.info(
+      "Se confirmó el formulario sin diligenciar la contraseña actual",
     );
   }
 
@@ -116,8 +118,8 @@ export class ChangePasswordPage {
     await this.fillPasswords(currentPassword, "", repeatPassword);
     await this.confirm();
 
-    logger.info(
-      "[ChangePasswordPage] Se confirmó el formulario sin diligenciar la nueva contraseña",
+    changePasswordPageLogger.info(
+      "Se confirmó el formulario sin diligenciar la nueva contraseña",
     );
   }
 
@@ -131,8 +133,8 @@ export class ChangePasswordPage {
     await this.fillPasswords(currentPassword, newPassword, "");
     await this.confirm();
 
-    logger.info(
-      "[ChangePasswordPage] Se confirmó el formulario sin diligenciar la repetición de la nueva contraseña",
+    changePasswordPageLogger.info(
+      "Se confirmó el formulario sin diligenciar la repetición de la nueva contraseña",
     );
   }
 
@@ -142,7 +144,7 @@ export class ChangePasswordPage {
   async confirm(): Promise<void> {
     await this.confirmButton.click();
 
-    logger.info("[ChangePasswordPage] Click en botón Confirmar");
+    changePasswordPageLogger.info("Click en botón Confirmar");
   }
 
   /**
@@ -151,6 +153,6 @@ export class ChangePasswordPage {
   async cancel(): Promise<void> {
     await this.cancelButton.click();
 
-    logger.info("[ChangePasswordPage] Click en botón Cancelar");
+    changePasswordPageLogger.info("Click en botón Cancelar");
   }
 }

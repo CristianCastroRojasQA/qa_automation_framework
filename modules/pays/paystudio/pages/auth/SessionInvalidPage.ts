@@ -1,6 +1,10 @@
 import { Locator, Page } from "@playwright/test";
 import { logger } from "@utils/logger";
 
+const sessionInvalidPageLogger = logger.child({
+  module: "SessionInvalidPage",
+});
+
 /**
  * Page Object Model de SessionInvalidPage
  */
@@ -18,8 +22,8 @@ export class SessionInvalidPage {
    * Confirma la alerta de sesión inválida
    */
   async clickAccept(): Promise<void> {
-    logger.info(
-      "[SessionInvalidPage] Click en botón 'Aceptar' (confirmar sesión inválida)",
+    sessionInvalidPageLogger.info(
+      "Click en botón 'Aceptar' (confirmar sesión inválida)",
     );
 
     await this.acceptButton.click();
