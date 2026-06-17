@@ -7,6 +7,12 @@ export interface ProjectCredentials {
   pass: string;
 }
 
+// Datos de soporte para pruebas de autenticación
+export interface AuthTestData {
+  reusedPreviousPassword: string;
+  validNewPassword: string;
+}
+
 // Configuración de logs
 export interface LoggerConfig {
   level: string;
