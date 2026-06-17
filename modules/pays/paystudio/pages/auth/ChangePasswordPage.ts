@@ -22,9 +22,9 @@ export class ChangePasswordPage {
   readonly newPasswordRequiredError: Locator;
   readonly repeatPasswordRequiredError: Locator;
 
-  readonly errorSummary: Locator;
-  readonly errorSummaryTitle: Locator;
-  readonly errorSummaryMessages: Locator;
+  readonly alertSummary: Locator;
+  readonly alertSummaryTitle: Locator;
+  readonly alertSummaryMessages: Locator;
 
   readonly confirmButton: Locator;
   readonly cancelButton: Locator;
@@ -67,9 +67,9 @@ export class ChangePasswordPage {
       "[id$='SelfDataControl1_CPRepeatPasswordTextBoxValidator']",
     );
 
-    this.errorSummary = page.locator("#ctl00_alertSection");
-    this.errorSummaryTitle = page.locator("#ctl00_lblSummaryTitle");
-    this.errorSummaryMessages = page.locator("#ctl00_alertSection ul li span");
+    this.alertSummary = page.locator("#ctl00_alertSection");
+    this.alertSummaryTitle = page.locator("#ctl00_lblSummaryTitle");
+    this.alertSummaryMessages = page.locator("#ctl00_alertSection ul li span");
 
     this.confirmButton = page.getByRole("button", { name: "Confirmar" });
     this.cancelButton = page.getByRole("button", { name: "Cancelar" });

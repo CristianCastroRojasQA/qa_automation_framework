@@ -34,7 +34,7 @@ export class SqlServerClient {
     return this.pool;
   }
 
-  // Ejecuta query
+  // Ejecuta query con retorno de registros (SELECT)
   public async query<T>(queryText: string): Promise<T[]> {
     try {
       logger.debug("[SQL] Ejecutando query.");
@@ -45,6 +45,29 @@ export class SqlServerClient {
       logger.info(`[SQL] OK. Registros: ${result.recordset.length}`);
 
       return result.recordset as T[];
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      logger.error(`[SQL] Error: ${message}`);
+
+      throw error;
+    }
+  }
+
+  // Ejecuta sentencia sin retorno de registros (UPDATE, INSERT, DELETE)
+  public async execute(queryText: string): Promise<void> {
+    try {
+      logger.debug("[SQL] Ejecutando sentencia sin retorno.");
+
+      const pool = await this.getPool();
+      const result = await pool.request().query(queryText);
+
+      const affectedRows = result.rowsAffected.reduce(
+        (total, current) => total + current,
+        0,
+      );
+
+      logger.info(`[SQL] OK. Filas afectadas: ${affectedRows}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 

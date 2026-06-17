@@ -39,4 +39,19 @@ export class UserRepository {
 
     return userResult;
   }
+
+  /**
+   * Desbloquea un usuario específico por username.
+   */
+  public async unlockUserByUsername(username: string): Promise<void> {
+    logger.info(
+      `[UserRepository] Desbloqueando usuario [${username}] con USER_STATUS=[2].`,
+    );
+
+    await this.db.execute(UserQueries.unlockUserByUsername(username));
+
+    logger.info(
+      `[UserRepository] Solicitud de desbloqueo ejecutada para el usuario [${username}].`,
+    );
+  }
 }

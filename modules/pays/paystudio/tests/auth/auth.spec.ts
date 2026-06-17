@@ -7,10 +7,15 @@ import { logger } from "@utils/logger";
 import { SecurityPolicyProvider } from "@paystudio/test-data/security/security-policy.provider";
 import { UserProvider } from "@paystudio/test-data/user/user.provider";
 
+const isBpagosCert =
+  settings.project === "BPAGOS" && settings.environment === "CERT";
+
 /**
  * Suite de Autenticación
  */
 test.describe("Módulo de Autenticación - PayStudio", () => {
+  test.describe.configure({ mode: "serial" });
+
   test("TC-01: Login Page - Debe cargar el portal de autenticación correctamente", async ({
     page,
     loginPage,
@@ -85,14 +90,11 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
 
     await loginPage.login(authData.emptyFields.user, authData.emptyFields.pass);
 
-    const userError = await loginPage.usernameError.isVisible();
-    const passError = await loginPage.passwordError.isVisible();
-
     await expect(loginPage.usernameError).toBeVisible();
     await expect(loginPage.passwordError).toBeVisible();
 
     logger.info(
-      `TC-05 validado: al enviar campos vacíos, se activaron ambas validaciones requeridas [${userError} y ${passError}] es visible en pantalla.`,
+      "TC-05 validado: al enviar campos vacíos, se mostraron las validaciones requeridas para usuario y contraseña.",
     );
   });
 
@@ -103,14 +105,11 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
 
     await loginPage.login(authData.emptyFields.user, settings.credentials.pass);
 
-    const userError = await loginPage.usernameError.isVisible();
-    const passError = await loginPage.passwordError.isVisible();
-
     await expect(loginPage.usernameError).toBeVisible();
     await expect(loginPage.passwordError).not.toBeVisible();
 
     logger.info(
-      `TC-06 validado: al omitir el usuario y enviar contraseña válida, solo se activó la validación de usuario [${userError} y ${passError}] es visible en pantalla.`,
+      "TC-06 validado: al omitir el usuario y enviar contraseña válida, solo se mostró la validación requerida para usuario.",
     );
   });
 
@@ -121,36 +120,43 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
 
     await loginPage.login(settings.credentials.user, authData.emptyFields.pass);
 
-    const userError = await loginPage.usernameError.isVisible();
-    const passError = await loginPage.passwordError.isVisible();
-
     await expect(loginPage.usernameError).not.toBeVisible();
     await expect(loginPage.passwordError).toBeVisible();
 
     logger.info(
-      `TC-07 validado: al enviar usuario válido y omitir contraseña, solo se activó la validación de contraseña [${userError} y ${passError}] es visible en pantalla.`,
+      "TC-07 validado: al enviar usuario válido y omitir contraseña, solo se mostró la validación requerida para contraseña.",
     );
   });
 
-  test("TC-08: Seguridad - Debe rechazar SQL Injection", async ({
-    page,
-    loginPage,
-  }) => {
-    const payload = securityPayloads.sqlInjection;
+  test(
+    "TC-08: Seguridad - Debe rechazar SQL Injection",
+    {
+      annotation: {
+        type: "note",
+        description:
+          "En pruebas de seguridad, este escenario no aplica para BPAGOS CERT ya que al ejecutar el payload de SQL Injection el ambiente redirecciona a un corte de conexión.",
+      },
+    },
+    async ({ page, loginPage }) => {
+      test.skip(isBpagosCert, "TC-08 no aplica para BPAGOS CERT.");
 
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(payload.user, payload.pass);
+      const payload = securityPayloads.sqlInjection;
 
-    await expect(page).toHaveURL(/LoginPage/);
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText(
-      AuthMessages.USER_NOT_FOUND,
-    );
+      await loginPage.goto(settings.paystudioUrl);
+      await loginPage.login(payload.user, payload.pass);
 
-    logger.info(
-      `TC-08 validado: intento de SQL Injection fue bloqueado; el sistema permaneció en LoginPage y el mensaje de error [${AuthMessages.USER_NOT_FOUND}] es visible.`,
-    );
-  });
+      await expect(page).toHaveURL(/LoginPage/);
+
+      await expect(loginPage.errorMessage).toBeVisible();
+      await expect(loginPage.errorMessage).toContainText(
+        AuthMessages.USER_NOT_FOUND,
+      );
+
+      logger.info(
+        `TC-08 validado: intento de SQL Injection fue bloqueado; el sistema permaneció en LoginPage y el mensaje de error [${AuthMessages.USER_NOT_FOUND}] es visible.`,
+      );
+    },
+  );
 
   test("TC-09: Seguridad - Debe rechazar XSS", async ({ page, loginPage }) => {
     const payload = securityPayloads.xssAttack;
@@ -208,82 +214,123 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await expect(page).toHaveURL(/MainPage/);
 
     logger.info(
-      `TC-11 validado: autenticación mediante tecla Enter fue exitosa; se navegó correctamente a 'MainPage'.`,
+      "TC-11 validado: autenticación mediante tecla Enter fue exitosa; se navegó correctamente a 'MainPage'.",
     );
   });
 
-  test("TC-12: Seguridad - Debe bloquear el usuario al superar la cantidad de intentos fallidos permitidos", async ({
-    loginPage,
-  }) => {
-    const { user } = settings.credentials;
-    const invalidPass = authData.invalidCredentials.wrongPassword;
+  test(
+    "TC-12: Seguridad - Debe bloquear el usuario al superar la cantidad de intentos fallidos permitidos",
+    {
+      annotation: {
+        type: "precondition",
+        description:
+          "En pruebas de bloqueo por intentos fallidos, se requiere un usuario bloqueable configurado por ambiente; el bloqueo se refleja en TRD_USER.USER_STATUS con estado 2.",
+      },
+    },
+    async ({ loginPage }) => {
+      const { user } = settings.credentials;
+      const invalidPass = authData.invalidCredentials.wrongPassword;
 
-    const policy = await SecurityPolicyProvider.getSecurityPolicy();
-    const maxAttempts = policy.attemptsOfLogin;
+      const policy = await SecurityPolicyProvider.getSecurityPolicy();
+      const maxAttempts = policy.attemptsOfLogin;
 
-    await loginPage.goto(settings.paystudioUrl);
+      await loginPage.goto(settings.paystudioUrl);
 
-    for (let i = 0; i < maxAttempts; i++) {
-      logger.info(
-        `TC-12 ejecución: intento fallido #${i + 1} de ${maxAttempts} para el usuario [${user}] con contraseña inválida.`,
+      for (let i = 0; i < maxAttempts; i++) {
+        logger.info(
+          `TC-12 ejecución: intento fallido #${i + 1} de ${maxAttempts} para el usuario [${user}] con contraseña inválida.`,
+        );
+
+        await loginPage.login(user, invalidPass);
+      }
+
+      await expect(loginPage.errorMessage).toBeVisible();
+      await expect(loginPage.errorMessage).toContainText(
+        AuthMessages.INVALID_CREDENTIALS,
       );
 
-      await loginPage.login(user, invalidPass);
-    }
+      logger.info(
+        `TC-12 validado: tras ${maxAttempts} intentos fallidos con el usuario [${user}], el sistema bloqueó el acceso mostrando el mensaje [${AuthMessages.INVALID_CREDENTIALS}].`,
+      );
+    },
+  );
 
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText(
-      AuthMessages.INVALID_CREDENTIALS,
-    );
+  test(
+    "TC-13: Seguridad - No debe permitir login cuando el usuario está bloqueado por política de seguridad",
+    {
+      annotation: {
+        type: "precondition",
+        description:
+          "En pruebas de bloqueo de usuario, este escenario requiere contar con un usuario previamente bloqueado; puede generarse ejecutando primero el TC-12 y validando que el estado bloqueado en TRD_USER.USER_STATUS sea 2.",
+      },
+    },
+    async ({ loginPage }) => {
+      const { user, pass } = settings.credentials;
 
-    logger.info(
-      `TC-12 validado: tras ${maxAttempts} intentos fallidos con el usuario [${user}], el sistema bloqueó el acceso mostrando el mensaje [${AuthMessages.INVALID_CREDENTIALS}].`,
-    );
-  });
+      try {
+        await loginPage.goto(settings.paystudioUrl);
 
-  test("TC-13: Seguridad - No debe permitir login cuando el usuario está bloqueado por política de seguridad", async ({
-    loginPage,
-  }) => {
-    const { user, pass } = settings.credentials;
+        await loginPage.login(user, pass);
 
-    await loginPage.goto(settings.paystudioUrl);
+        await expect(loginPage.errorMessage).toBeVisible();
+        await expect(loginPage.errorMessage).toContainText(
+          AuthMessages.INVALID_CREDENTIALS,
+        );
 
-    await loginPage.login(user, pass);
+        const blockedUser = await UserProvider.getUserByUsername(user);
 
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText(
-      AuthMessages.INVALID_CREDENTIALS,
-    );
+        expect(blockedUser.userStatus).toBe(2);
 
-    const blockedUser = await UserProvider.getUserByUsername(user);
+        logger.info(
+          `TC-13 validado: el usuario [${user}] permanece bloqueado por política de seguridad con estado USER_STATUS=[2] en TRD_USER; el acceso fue rechazado correctamente.`,
+        );
+      } finally {
+        await UserProvider.unlockUserByUsername(user);
 
-    expect(blockedUser.userStatus).toBe(2);
+        const unlockedUser = await UserProvider.getUserByUsername(user);
 
-    logger.info(
-      `TC-13 validado: el usuario [${user}] permanece bloqueado por política de seguridad (ACCOUNT_BLOCK_MINUTES = 999999 ≈ bloqueo indefinido), requiriendo desbloqueo manual; el acceso fue rechazado correctamente.`,
-    );
-  });
+        expect(unlockedUser.userStatus).toBe(1);
 
-  test.skip("TC-14: Seguridad - Debe impedir el acceso a un usuario bloqueado por inactividad", async ({
-    loginPage,
-  }) => {
-    const { user, pass } = settings.credentials;
+        logger.info(
+          `TC-13 limpieza: el usuario [${user}] fue restaurado correctamente a USER_STATUS=[1] en TRD_USER.`,
+        );
+      }
+    },
+  );
 
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
+  test.skip(
+    "TC-14: Seguridad - Debe impedir el acceso a un usuario bloqueado por inactividad",
+    {
+      annotation: {
+        type: "note",
+        description:
+          "Caso pendiente de implementación, requiere definir y automatizar el flujo de bloqueo por inactividad.",
+      },
+    },
+    async () => {},
+  );
 
-    await expect(loginPage.errorMessage).toBeVisible();
-    await expect(loginPage.errorMessage).toContainText(
-      AuthMessages.INVALID_CREDENTIALS,
-    );
+  test.skip(
+    "TC-15: Seguridad - Debe exigir cambio de contraseña en el primer ingreso",
+    {
+      annotation: {
+        type: "note",
+        description:
+          "Caso pendiente de implementación, requiere definir y automatizar el flujo de cambio de contraseña en primer ingreso.",
+      },
+    },
+    async () => {},
+  );
 
-    logger.info(
-      `TC-14 validado: el usuario [${user}] no pudo iniciar sesión debido a bloqueo por inactividad; el sistema rechazó el acceso mostrando [${AuthMessages.INVALID_CREDENTIALS}].`,
-    );
-  });
-
-  test.skip("TC-15: Seguridad - Debe exigir cambio de contraseña en el primer ingreso", async () => {});
-
-  test.skip("TC-16: Seguridad - Debe exigir cambio de contraseña cuando la contraseña ha expirado", async () => {});
+  test.skip(
+    "TC-16: Seguridad - Debe exigir cambio de contraseña cuando la contraseña ha expirado",
+    {
+      annotation: {
+        type: "note",
+        description:
+          "Caso pendiente de implementación, requiere definir y automatizar el flujo de expiración de contraseña.",
+      },
+    },
+    async () => {},
+  );
 });
-``;

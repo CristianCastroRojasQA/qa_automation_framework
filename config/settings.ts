@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 import {
+  AuthTestData,
   DatabaseConfig,
   LoggerConfig,
   PlaywrightBrowser,
@@ -17,6 +18,8 @@ dotenv.config();
 class Settings {
   // Prefijo dinámico: DOMAIN_PROJECT_ENV
   private readonly PREFIX: string;
+  private readonly PROJECT: string;
+  private readonly ENVIRONMENT: string;
 
   // Instancia única
   private static _instance: Settings;
@@ -26,6 +29,8 @@ class Settings {
     const project = (process.env.PROJECT || "BPAGOS").toUpperCase();
     const env = (process.env.ENV || "CERT").toUpperCase();
 
+    this.PROJECT = project;
+    this.ENVIRONMENT = env;
     this.PREFIX = `${domain}_${project}_${env}`;
 
     console.log("---------------------------------------------------------");
@@ -41,6 +46,16 @@ class Settings {
       Settings._instance = new Settings();
     }
     return Settings._instance;
+  }
+
+  // Proyecto activo
+  get project(): string {
+    return this.PROJECT;
+  }
+
+  // Ambiente activo
+  get environment(): string {
+    return this.ENVIRONMENT;
   }
 
   // URL PayStudio
@@ -61,13 +76,21 @@ class Settings {
     };
   }
 
-  // Credenciales para pruebas de inactividad (TC-14)
-  get authInactivityCredentials(): ProjectCredentials {
+  // Datos de autenticación para pruebas
+  get authTestData(): AuthTestData {
     return {
-      user: this.getEnvVar("AUTH_INACTIVITY_USER"),
-      pass: this.getEnvVar("AUTH_INACTIVITY_PASS"),
+      reusedPreviousPassword: this.getEnvVar("REUSED_PREVIOUS_PASSWORD"),
+      validNewPassword: this.getEnvVar("VALID_NEW_PASSWORD"),
     };
   }
+
+  // Credenciales para pruebas de inactividad
+  // get authInactivityCredentials(): ProjectCredentials {
+  //   return {
+  //     user: this.getEnvVar("AUTH_INACTIVITY_USER"),
+  //     pass: this.getEnvVar("AUTH_INACTIVITY_PASS"),
+  //   };
+  // }
 
   // Configuración de logs
   get loggerConfig(): LoggerConfig {
