@@ -2,6 +2,8 @@ import { Locator, Page } from "@playwright/test";
 import { MerchantSearchConstants } from "@paystudio/test-data/merchant-search/merchant-search.constants";
 import { logger } from "@utils/logger";
 
+const merchantSearchLogger = logger.child({ module: "MerchantSearch" });
+
 /**
  * Page Object Model del modal Merchant Search
  */
@@ -25,7 +27,7 @@ export class MerchantSearch {
   async clickSearchInput(): Promise<void> {
     await this.searchInput.click();
 
-    logger.info("[MerchantSearch] Click en input");
+    merchantSearchLogger.info("Click en input");
   }
 
   /**
@@ -36,9 +38,7 @@ export class MerchantSearch {
     await this.searchInput.fill(searchTerm);
     await this.searchInput.press("Enter");
 
-    logger.info(
-      `[MerchantSearch] búsqueda ejecutada. criterio="${searchTerm}"`,
-    );
+    merchantSearchLogger.info(`Búsqueda ejecutada. criterio="${searchTerm}"`);
   }
 
   /**
@@ -49,7 +49,7 @@ export class MerchantSearch {
 
     await item.click();
 
-    logger.info(`[MerchantSearch] resultado seleccionado. índice=${index}`);
+    merchantSearchLogger.info(`Resultado seleccionado. índice=${index}`);
   }
 
   /**
@@ -145,7 +145,7 @@ export class MerchantSearch {
       })
       .filter((value): value is number => value !== null);
 
-    logger.info(`[MerchantSearch] IDs: [${ids.join(", ")}]`);
+    merchantSearchLogger.info(`IDs: [${ids.join(", ")}]`);
 
     return ids;
   }

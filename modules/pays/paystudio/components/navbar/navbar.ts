@@ -2,6 +2,8 @@ import { expect, Locator, Page } from "@playwright/test";
 import { NavbarMessages } from "@paystudio/test-data/navbar/navbar.constants";
 import { logger } from "@utils/logger";
 
+const navbarLogger = logger.child({ module: "Navbar" });
+
 /**
  * Page Object Model del Navbar
  */
@@ -77,7 +79,7 @@ export class Navbar {
 
     await expect(this.merchantSearchModal).toBeAttached();
 
-    logger.info("[Navbar] Buscador abierto");
+    navbarLogger.info("Buscador abierto");
   }
 
   /**
@@ -87,7 +89,7 @@ export class Navbar {
     await this.openUserMenu();
     await this.businessDateLink.click();
 
-    logger.info("[Navbar] Business Date abierto");
+    navbarLogger.info("Business Date abierto");
   }
 
   /**
@@ -97,7 +99,7 @@ export class Navbar {
     await this.openUserMenu();
     await this.changePasswordLink.click({ noWaitAfter: true });
 
-    logger.info("[Navbar] Cambio contraseña");
+    navbarLogger.info("Cambio contraseña");
   }
 
   /**
@@ -107,7 +109,7 @@ export class Navbar {
     await this.openUserMenu();
     await this.aboutLink.click();
 
-    logger.info("[Navbar] About abierto");
+    navbarLogger.info("About abierto");
   }
 
   /**
@@ -117,6 +119,6 @@ export class Navbar {
     await this.openUserMenu();
     await this.logoutLink.click();
 
-    logger.info("[Navbar] Logout ejecutado");
+    navbarLogger.info("Logout ejecutado");
   }
 }

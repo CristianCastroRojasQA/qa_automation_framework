@@ -1,6 +1,8 @@
 import { Locator, Page } from "@playwright/test";
 import { logger } from "@utils/logger";
 
+const loginPageLogger = logger.child({ module: "LoginPage" });
+
 /**
  * Page Object Model de LoginPage
  */
@@ -53,7 +55,7 @@ export class LoginPage {
    * Navega a la página de login
    */
   async goto(url: string): Promise<void> {
-    logger.info(`[LoginPage] Navegando a ${url}`);
+    loginPageLogger.info(`Navegando a ${url}`);
     await this.page.goto(url, { waitUntil: "domcontentloaded" });
   }
 
@@ -61,29 +63,27 @@ export class LoginPage {
    * Login con botón Ingresar
    */
   async login(username: string, password: string): Promise<void> {
-    logger.info(
-      `[LoginPage] Login iniciado (user=${username ? "informado" : "empty"})`,
+    loginPageLogger.info(
+      `Login iniciado (user=${username ? "informado" : "empty"})`,
     );
 
     await this.fillCredentials(username, password);
     await this.loginButton.click();
 
-    logger.info(
-      "[LoginPage] Formulario de login enviado (click en 'Ingresar')",
-    );
+    loginPageLogger.info("Formulario de login enviado (click en 'Ingresar')");
   }
 
   /**
    * Login usando tecla Enter
    */
   async loginWithEnter(username: string, password: string): Promise<void> {
-    logger.info(
-      `[LoginPage] Login iniciado (user=${username ? "informado" : "empty"})`,
+    loginPageLogger.info(
+      `Login iniciado (user=${username ? "informado" : "empty"})`,
     );
 
     await this.fillCredentials(username, password);
     await this.passwordInput.press("Enter");
 
-    logger.info("[LoginPage] Formulario enviado mediante tecla Enter");
+    loginPageLogger.info("Formulario enviado mediante tecla Enter");
   }
 }

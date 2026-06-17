@@ -2,6 +2,8 @@ import { Locator, Page } from "@playwright/test";
 import { NavbarMessages } from "@paystudio/test-data/navbar/navbar.constants";
 import { logger } from "@utils/logger";
 
+const aboutModalLogger = logger.child({ module: "AboutModal" });
+
 /**
  * Page Object Model del modal About
  */
@@ -29,7 +31,7 @@ export class AboutModal {
     const text = await this.assemblyVersion.textContent();
     const clean = (text ?? "").trim();
 
-    logger.info(`[AboutModal] Versión capturada: "${clean}"`);
+    logger.info(`Versión capturada: "${clean}"`);
 
     return clean;
   }
@@ -40,6 +42,6 @@ export class AboutModal {
   async close(): Promise<void> {
     await this.closeButton.click();
 
-    logger.info("[AboutModal] Modal cerrado");
+    logger.info("Modal cerrado");
   }
 }

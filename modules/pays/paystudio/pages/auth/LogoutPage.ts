@@ -1,6 +1,8 @@
 import { Locator, Page } from "@playwright/test";
 import { logger } from "@utils/logger";
 
+const logoutPageLogger = logger.child({ module: "LogoutPage" });
+
 /**
  * Page Object Model de LogoutPage
  */
@@ -18,7 +20,7 @@ export class LogoutPage {
    * Confirma el logout haciendo click en el botón Aceptar
    */
   async clickConfirmLogout(): Promise<void> {
-    logger.info("[LogoutPage] Click en botón 'Aceptar' para confirmar logout");
+    logoutPageLogger.info("Click en botón 'Aceptar' para confirmar logout");
 
     await this.confirmButton.click();
   }

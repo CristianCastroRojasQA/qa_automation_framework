@@ -2,6 +2,8 @@ import { Locator, Page } from "@playwright/test";
 import { NavbarMessages } from "@paystudio/test-data/navbar/navbar.constants";
 import { logger } from "@utils/logger";
 
+const businessDateModalLogger = logger.child({ module: "BusinessDateModal" });
+
 /**
  * Page Object Model del modal Business Date
  */
@@ -27,7 +29,7 @@ export class BusinessDateModal {
     const text = await this.dateCell.textContent();
     const clean = (text ?? "").trim();
 
-    logger.info(`[BusinessDateModal] fecha: "${clean}"`);
+    businessDateModalLogger.info(`Fecha: "${clean}"`);
 
     return clean;
   }
@@ -38,6 +40,6 @@ export class BusinessDateModal {
   async close(): Promise<void> {
     await this.closeButton.click();
 
-    logger.debug("[BusinessDateModal] modal cerrado");
+    businessDateModalLogger.debug("Modal cerrado");
   }
 }

@@ -2,6 +2,8 @@ import { logger } from "@utils/logger";
 import { test as appTest } from "./app.fixture";
 import { attachScreenshot } from "@utils/screenshot";
 
+const lifecycleLogger = logger.child({ module: "Lifecycle" });
+
 /**
  * Fixture de ciclo de vida por test
  */
@@ -16,24 +18,24 @@ export const test = appTest.extend<LifecycleFixtures>({
    */
   testLifecycle: [
     async ({ page }, use, testInfo) => {
-      logger.info(`[Lifecycle] >>> INICIO: ${testInfo.title} <<<`);
+      lifecycleLogger.info(`>>> INICIO: ${testInfo.title} <<<`);
 
       await use();
 
       if (testInfo.status !== testInfo.expectedStatus) {
-        logger.error(`[Lifecycle] FALLÓ: ${testInfo.title}`);
+        lifecycleLogger.error(`FALLÓ: ${testInfo.title}`);
 
         const errorMessage = testInfo.error?.message
           ?.replace(/\x1B\[\d+m/g, "")
           .split("\n")[0];
 
-        logger.error(`[Lifecycle] ERROR: ${errorMessage}`);
+        lifecycleLogger.error(`ERROR: ${errorMessage}`);
       }
 
       // Captura evidencia
       await attachScreenshot(page, testInfo);
 
-      logger.info(`[Lifecycle] <<< FIN: ${testInfo.title} >>>`);
+      lifecycleLogger.info(`<<< FIN: ${testInfo.title} >>>`);
     },
     {
       auto: true,

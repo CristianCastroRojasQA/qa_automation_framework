@@ -3,6 +3,8 @@ import { SqlServerClient } from "@database/sqlserver.client";
 import { Merchant, RepeatedFantasyName } from "@paystudio/types/merchant.types";
 import { logger } from "@utils/logger";
 
+const merchantRepositoryLogger = logger.child({ module: "MerchantRepository" });
+
 /**
  * Repository Merchant
  */
@@ -13,7 +15,7 @@ export class MerchantRepository {
    * Obtiene un comercio válido
    */
   public async getMerchant(): Promise<Merchant> {
-    logger.info("[MerchantRepository] Consultando comercio disponible.");
+    merchantRepositoryLogger.info("Consultando comercio disponible.");
 
     const result = await this.db.query<Merchant>(
       MerchantQueries.getFirstValidMerchant,
@@ -22,8 +24,8 @@ export class MerchantRepository {
     const merchant = result[0];
 
     if (!merchant) {
-      logger.error(
-        "[MerchantRepository] No se encontró un comercio válido en la base de datos.",
+      merchantRepositoryLogger.error(
+        "No se encontró un comercio válido en la base de datos.",
       );
 
       throw new Error(
@@ -31,8 +33,8 @@ export class MerchantRepository {
       );
     }
 
-    logger.info(
-      `[MerchantRepository] Comercio obtenido correctamente: [${merchant.merchantIdentifier}]`,
+    merchantRepositoryLogger.info(
+      `Comercio obtenido correctamente: [${merchant.merchantIdentifier}]`,
     );
 
     return merchant;
@@ -42,8 +44,8 @@ export class MerchantRepository {
    * Obtiene un nombre de fantasía repetido
    */
   public async getRepeatedFantasyName(): Promise<RepeatedFantasyName> {
-    logger.info(
-      "[MerchantRepository] Consultando nombre de fantasía repetido para búsqueda múltiple.",
+    merchantRepositoryLogger.info(
+      "Consultando nombre de fantasía repetido para búsqueda múltiple.",
     );
 
     const result = await this.db.query<RepeatedFantasyName>(
@@ -53,8 +55,8 @@ export class MerchantRepository {
     const repeatedFantasyName = result[0];
 
     if (!repeatedFantasyName) {
-      logger.error(
-        "[MerchantRepository] No se encontró un nombre de fantasía repetido en la base de datos.",
+      merchantRepositoryLogger.error(
+        "No se encontró un nombre de fantasía repetido en la base de datos.",
       );
 
       throw new Error(
@@ -62,8 +64,8 @@ export class MerchantRepository {
       );
     }
 
-    logger.info(
-      `[MerchantRepository] Nombre de fantasía repetido obtenido correctamente: [${repeatedFantasyName.fantasyName}]`,
+    merchantRepositoryLogger.info(
+      `Nombre de fantasía repetido obtenido correctamente: [${repeatedFantasyName.fantasyName}]`,
     );
 
     return repeatedFantasyName;

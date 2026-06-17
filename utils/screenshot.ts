@@ -1,6 +1,8 @@
 import { Page, Locator, TestInfo } from "@playwright/test";
 import { logger } from "@utils/logger";
 
+const screenshotLogger = logger.child({ module: "SCREENSHOT" });
+
 // Type guard: Page vs Locator
 function isPage(target: Page | Locator): target is Page {
   return "goto" in target;
@@ -26,12 +28,12 @@ export async function attachScreenshot(
       contentType: "image/png",
     });
 
-    logger.info(`[CAPTURA] Evidencia capturada - ${screenshotName}`);
+    screenshotLogger.info(`Evidencia capturada - ${screenshotName}`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
 
-    logger.warn(
-      `[CAPTURA] No se pudo capturar "${screenshotName}": ${message}`,
+    screenshotLogger.warn(
+      `No se pudo capturar "${screenshotName}": ${message}`,
     );
   }
 }
