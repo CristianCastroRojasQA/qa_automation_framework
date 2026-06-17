@@ -6,8 +6,11 @@ import { LoggerConfig } from "@types-fw/settings.types";
 
 // Formato de salida estándar
 const customFormat = winston.format.printf(
-  ({ timestamp, level, message, stack }) =>
-    `${timestamp} [${level.toUpperCase()}]: ${stack || message}`,
+  ({ timestamp, level, message, stack, module }) => {
+    const modulePrefix = module ? `[${module}] ` : "";
+
+    return `${timestamp} [${level.toUpperCase()}]: ${modulePrefix}${stack || message}`;
+  },
 );
 
 // Crear instancia de logger
