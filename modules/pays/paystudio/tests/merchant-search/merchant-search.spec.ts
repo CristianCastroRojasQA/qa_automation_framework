@@ -7,6 +7,8 @@ import { expect, test } from "@paystudio/fixtures";
 import { logger } from "@utils/logger";
 import { MerchantDataProvider } from "@paystudio/test-data/merchant-search/merchant.provider";
 
+const merchantSearchLogger = logger.child({ module: "MerchantSearchSpec" });
+
 /**
  * Suite de Merchant Search (Buscador Global)
  */
@@ -25,7 +27,7 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
 
     await expect(merchantSearch.getModal()).toBeAttached();
 
-    logger.info(
+    merchantSearchLogger.info(
       "TC-01 validado correctamente: el buscador global se abrió desde el Navbar.",
     );
   });
@@ -42,7 +44,7 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
 
     await expect(merchantSearch.getSearchInput()).toBeFocused();
 
-    logger.info(
+    merchantSearchLogger.info(
       "TC-02 validado correctamente: el campo de búsqueda permitió interacción mediante click.",
     );
   });
@@ -63,7 +65,7 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
 
     expect(results.length).toBeGreaterThan(0);
 
-    logger.info(
+    merchantSearchLogger.info(
       `TC-03 validado correctamente: historial visible [${MerchantSearchConstants.HISTORY_TITLE}] con ${results.length} elementos.`,
     );
   });
@@ -93,7 +95,7 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
 
     expect(containsExpectedMerchant).toBeTruthy();
 
-    logger.info(
+    merchantSearchLogger.info(
       `TC-04 OK: búsqueda por nombre [${searchTerm}] encontró resultados.`,
     );
   });
@@ -121,7 +123,7 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
 
     expect(containsExpectedMerchant).toBeTruthy();
 
-    logger.info(
+    merchantSearchLogger.info(
       `TC-05 OK: búsqueda por código [${searchTerm}] encontró resultados.`,
     );
   });
@@ -140,7 +142,9 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
 
     await expect(merchantSearch.getNoResultsTitle()).toBeVisible();
 
-    logger.info("TC-06 OK: mensaje de 'no encontrado' mostrado correctamente.");
+    merchantSearchLogger.info(
+      "TC-06 OK: mensaje de 'no encontrado' mostrado correctamente.",
+    );
   });
 
   test("TC-07: Selección de comercio navega a contexto", async ({
@@ -161,7 +165,7 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
 
     await expect(page).toHaveURL(/MerchantEntryPoint/);
 
-    logger.info("TC-07 OK: navegación al seleccionar comercio.");
+    merchantSearchLogger.info("TC-07 OK: navegación al seleccionar comercio.");
   });
 
   test("TC-08: Validar ordenamiento ASC", async ({ navbar, page }) => {
@@ -183,7 +187,7 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
     expect(ids.length).toBeGreaterThan(0);
     expect(ids).toEqual(sorted);
 
-    logger.info("TC-08 OK: resultados en orden ascendente.");
+    merchantSearchLogger.info("TC-08 OK: resultados en orden ascendente.");
   });
 
   test("TC-09: Validar tope máximo de resultados", async ({ navbar, page }) => {
@@ -205,7 +209,7 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
       MerchantSearchConstants.MAX_RESULTS,
     );
 
-    logger.info("TC-09 OK: máximo de resultados respetado.");
+    merchantSearchLogger.info("TC-09 OK: máximo de resultados respetado.");
   });
 
   test("TC-10: Bloqueo XSS", async ({ navbar, page }) => {
@@ -225,7 +229,7 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
     await expect(page).toHaveURL(/MainPage/);
     expect(dialogTriggered).toBe(false);
 
-    logger.info("TC-10 OK: XSS bloqueado correctamente.");
+    merchantSearchLogger.info("TC-10 OK: XSS bloqueado correctamente.");
   });
 
   test("TC-11: Bloqueo SQL Injection", async ({ navbar, page }) => {
@@ -238,6 +242,8 @@ test.describe("Buscador Global de Comercios - PayStudio", () => {
     await expect(page).toHaveURL(/MainPage/);
     await expect(merchantSearch.getNoResultsTitle()).toBeVisible();
 
-    logger.info("TC-11 OK: SQL Injection bloqueado correctamente.");
+    merchantSearchLogger.info(
+      "TC-11 OK: SQL Injection bloqueado correctamente.",
+    );
   });
 });

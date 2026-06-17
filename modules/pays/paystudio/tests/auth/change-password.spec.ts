@@ -5,6 +5,8 @@ import { logger } from "@utils/logger";
 import { authData } from "@paystudio/test-data/auth/auth.data";
 import { SecurityPolicyProvider } from "@paystudio/test-data/security/security-policy.provider";
 
+const changePasswordLogger = logger.child({ module: "ChangePasswordSpec" });
+
 /**
  * Suite de Cambio de Contraseña
  */
@@ -36,7 +38,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       new RegExp(user, "i"),
     );
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-01 validado: la página de cambio de contraseña cargó correctamente, la URL contiene [SelfData], el título [${AuthMessages.CHANGE_PASSWORD_TITLE}] es visible y el nombre de login corresponde al usuario autenticado [${user}].`,
     );
   });
@@ -65,7 +67,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD,
     );
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-02 validado: al confirmar cambio de contraseña con campos vacíos, se mostró el resumen de alert [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y los mensajes requeridos [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] para contraseña actual, nueva contraseña y repetir contraseña.`,
     );
   });
@@ -97,7 +99,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD,
     );
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-03 validado: al omitir la contraseña actual y diligenciar nueva contraseña/repetición, se mostró el resumen [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y la validación requerida [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] únicamente para la contraseña actual.`,
     );
   });
@@ -124,7 +126,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD,
     );
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-04 validado: al omitir nueva contraseña, se mostró la validación requerida [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] para el campo nueva contraseña.`,
     );
   });
@@ -154,7 +156,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD,
     );
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-05 validado: al omitir repetir contraseña, se mostró la validación requerida [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] para el campo repetir contraseña.`,
     );
   });
@@ -190,7 +192,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       AuthMessages.CHANGE_PASSWORD_INVALID_FORMAT,
     );
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-06 validado: al ingresar una nueva contraseña con formato inválido [${authData.invalidCredentials.invalidFormatPassword}], se mostró el alert [${AuthMessages.CHANGE_PASSWORD_INVALID_FORMAT}].`,
     );
   });
@@ -212,7 +214,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
 
     await expect(page).toHaveURL(/MainPage/);
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-07 validado: al hacer clic en cancelar desde la página de cambio de contraseña, se redirigió correctamente a la página principal, la URL contiene [MainPage].`,
     );
   });
@@ -225,7 +227,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
     const { user, pass } = settings.credentials;
     const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-08 ejecución: política actual MIN_PASSWORD=[${securityPolicy.minPassword}] y valor de prueba utilizado=[${authData.invalidCredentials.shortPassword.length}] caracteres.`,
     );
 
@@ -250,7 +252,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       AuthMessages.CHANGE_PASSWORD_LEN,
     );
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-08 validado: al ingresar una nueva contraseña menor al largo mínimo permitido [${authData.invalidCredentials.shortPassword}], se mostró el alert [${AuthMessages.CHANGE_PASSWORD_LEN}].`,
     );
   });
@@ -263,7 +265,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
     const { user, pass } = settings.credentials;
     const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-09 ejecución: política actual MAX_PASSWORD=[${securityPolicy.maxPassword}] y valor de prueba utilizado=[${authData.invalidCredentials.longPassword.length}] caracteres.`,
     );
 
@@ -288,7 +290,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       AuthMessages.CHANGE_PASSWORD_LEN,
     );
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-09 validado: al ingresar una nueva contraseña mayor al largo máximo permitido [${authData.invalidCredentials.longPassword}], se mostró el alert [${AuthMessages.CHANGE_PASSWORD_LEN}].`,
     );
   });
@@ -309,7 +311,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       const { reusedPreviousPassword } = settings.authTestData;
       const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
 
-      logger.info(
+      changePasswordLogger.info(
         `TC-10 ejecución: política PASSWORD_NOT_ALLOWED_CNT=[${securityPolicy.passwordsNotAllowedCnt}] activa para validar reutilización de contraseña.`,
       );
 
@@ -344,7 +346,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
         changePasswordPage.repeatPasswordRequiredError,
       ).not.toBeVisible();
 
-      logger.info(
+      changePasswordLogger.info(
         `TC-10 validado: al intentar reutilizar una contraseña anterior, se mostró el resumen [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y el alert [${AuthMessages.CHANGE_PASSWORD_REUSED_PASSWORD_HISTORY}].`,
       );
     },
@@ -384,7 +386,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
         AuthMessages.CHANGE_PASSWORD_SUCCESS_MESSAGE,
       );
 
-      logger.info(
+      changePasswordLogger.info(
         `TC-11 validado: al cambiar la contraseña usando una contraseña actual válida y una nueva contraseña válida, se mostró el resumen [${AuthMessages.CHANGE_PASSWORD_SUCCESS_SUMMARY_TITLE}] y el alert [${AuthMessages.CHANGE_PASSWORD_SUCCESS_MESSAGE}].`,
       );
     },
@@ -403,7 +405,8 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       const { user, pass } = settings.credentials;
       const { validNewPassword } = settings.authTestData;
       const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
-      logger.info(
+
+      changePasswordLogger.info(
         `TC-12 ejecución: política actual PASSWORD_CHANGE_DAYS=[${securityPolicy.passwordChangeDays}].`,
       );
 
@@ -428,7 +431,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
         AuthMessages.CHANGE_PASSWORD_MIN_DAYS_RESTRICTION,
       );
 
-      logger.info(
+      changePasswordLogger.info(
         `TC-12 validado: al intentar cambiar la contraseña antes del tiempo mínimo configurado, usando una contraseña actual válida y una nueva contraseña válida, se mostró el resumen [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y el alert [${AuthMessages.CHANGE_PASSWORD_MIN_DAYS_RESTRICTION}].`,
       );
     },
@@ -463,7 +466,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       AuthMessages.CHANGE_PASSWORD_INVALID_CURRENT_PASSWORD,
     );
 
-    logger.info(
+    changePasswordLogger.info(
       `TC-13 validado: al ingresar una contraseña actual incorrecta [${authData.invalidCredentials.wrongPassword}] y una nueva contraseña válida, se mostró el alert [${AuthMessages.CHANGE_PASSWORD_INVALID_CURRENT_PASSWORD}].`,
     );
   });

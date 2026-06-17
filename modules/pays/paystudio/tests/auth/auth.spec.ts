@@ -7,6 +7,8 @@ import { logger } from "@utils/logger";
 import { SecurityPolicyProvider } from "@paystudio/test-data/security/security-policy.provider";
 import { UserProvider } from "@paystudio/test-data/user/user.provider";
 
+const authLogger = logger.child({ module: "AuthSpec" });
+
 const isBpagosCert =
   settings.project === "BPAGOS" && settings.environment === "CERT";
 
@@ -25,7 +27,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await expect(page).toHaveURL(/LoginPage/);
     await expect(page.getByText(AuthMessages.BRAND_PAGE)).toBeVisible();
 
-    logger.info(
+    authLogger.info(
       `TC-01 validado: se cargó LoginPage correctamente (URL contiene 'LoginPage') y el texto de marca [${AuthMessages.BRAND_PAGE}] es visible en pantalla.`,
     );
   });
@@ -42,7 +44,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await expect(page).toHaveURL(/MainPage/);
     await expect(page.getByText(AuthMessages.BRAND_PAGE)).toBeVisible();
 
-    logger.info(
+    authLogger.info(
       `TC-02 validado: autenticación exitosa para [${user}], se redirigió a 'MainPage' y el texto de marca [${AuthMessages.BRAND_PAGE}] es visible tras el login.`,
     );
   });
@@ -60,7 +62,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
       AuthMessages.INVALID_CREDENTIALS,
     );
 
-    logger.info(
+    authLogger.info(
       `TC-03 validado: intento de login con contraseña inválida fue rechazado; el mensaje de error [${AuthMessages.INVALID_CREDENTIALS}] se mostró correctamente.`,
     );
   });
@@ -78,7 +80,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
       AuthMessages.USER_NOT_FOUND,
     );
 
-    logger.info(
+    authLogger.info(
       `TC-04 validado: intento de login con usuario inexistente fue rechazado; el mensaje [${AuthMessages.USER_NOT_FOUND}] es visible en pantalla.`,
     );
   });
@@ -93,7 +95,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await expect(loginPage.usernameError).toBeVisible();
     await expect(loginPage.passwordError).toBeVisible();
 
-    logger.info(
+    authLogger.info(
       "TC-05 validado: al enviar campos vacíos, se mostraron las validaciones requeridas para usuario y contraseña.",
     );
   });
@@ -108,7 +110,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await expect(loginPage.usernameError).toBeVisible();
     await expect(loginPage.passwordError).not.toBeVisible();
 
-    logger.info(
+    authLogger.info(
       "TC-06 validado: al omitir el usuario y enviar contraseña válida, solo se mostró la validación requerida para usuario.",
     );
   });
@@ -123,7 +125,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await expect(loginPage.usernameError).not.toBeVisible();
     await expect(loginPage.passwordError).toBeVisible();
 
-    logger.info(
+    authLogger.info(
       "TC-07 validado: al enviar usuario válido y omitir contraseña, solo se mostró la validación requerida para contraseña.",
     );
   });
@@ -152,7 +154,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
         AuthMessages.USER_NOT_FOUND,
       );
 
-      logger.info(
+      authLogger.info(
         `TC-08 validado: intento de SQL Injection fue bloqueado; el sistema permaneció en LoginPage y el mensaje de error [${AuthMessages.USER_NOT_FOUND}] es visible.`,
       );
     },
@@ -170,7 +172,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
       AuthMessages.USER_NOT_FOUND,
     );
 
-    logger.info(
+    authLogger.info(
       `TC-09 validado: intento de XSS fue rechazado; no hubo redirección y el mensaje de error [${AuthMessages.USER_NOT_FOUND}] se mostró correctamente en LoginPage.`,
     );
   });
@@ -197,7 +199,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
 
     await expect(page).toHaveURL(/LogoutPage/);
 
-    logger.info(
+    authLogger.info(
       `TC-10 validado: el usuario [${user}] cerró sesión correctamente; se mostró el mensaje [${AuthMessages.LOGOUT_SUCCESS}] y se redirigió a 'LogoutPage'.`,
     );
   });
@@ -213,7 +215,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
 
     await expect(page).toHaveURL(/MainPage/);
 
-    logger.info(
+    authLogger.info(
       "TC-11 validado: autenticación mediante tecla Enter fue exitosa; se navegó correctamente a 'MainPage'.",
     );
   });
@@ -237,7 +239,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
       await loginPage.goto(settings.paystudioUrl);
 
       for (let i = 0; i < maxAttempts; i++) {
-        logger.info(
+        authLogger.info(
           `TC-12 ejecución: intento fallido #${i + 1} de ${maxAttempts} para el usuario [${user}] con contraseña inválida.`,
         );
 
@@ -249,7 +251,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
         AuthMessages.INVALID_CREDENTIALS,
       );
 
-      logger.info(
+      authLogger.info(
         `TC-12 validado: tras ${maxAttempts} intentos fallidos con el usuario [${user}], el sistema bloqueó el acceso mostrando el mensaje [${AuthMessages.INVALID_CREDENTIALS}].`,
       );
     },
@@ -281,7 +283,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
 
         expect(blockedUser.userStatus).toBe(2);
 
-        logger.info(
+        authLogger.info(
           `TC-13 validado: el usuario [${user}] permanece bloqueado por política de seguridad con estado USER_STATUS=[2] en TRD_USER; el acceso fue rechazado correctamente.`,
         );
       } finally {
@@ -291,7 +293,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
 
         expect(unlockedUser.userStatus).toBe(1);
 
-        logger.info(
+        authLogger.info(
           `TC-13 limpieza: el usuario [${user}] fue restaurado correctamente a USER_STATUS=[1] en TRD_USER.`,
         );
       }

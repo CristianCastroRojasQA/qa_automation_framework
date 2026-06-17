@@ -2,6 +2,7 @@ import { SqlServerClient } from "@database/sqlserver.client";
 import { logger } from "@utils/logger";
 import { test, expect } from "@playwright/test";
 
+const databaseLogger = logger.child({ module: "DatabaseSpec" });
 
 /**
  * Suite de Infraestructura - Base de Datos
@@ -19,7 +20,7 @@ test.describe("Database Connection", () => {
     expect(result).toHaveLength(1);
     expect(result[0].databaseName).toBeTruthy();
 
-    logger.info(
+    databaseLogger.info(
       `TC-01 validado correctamente: la conexión a SQL Server fue exitosa y la base de datos activa es [${result[0].databaseName}].`,
     );
   });
@@ -38,7 +39,7 @@ test.describe("Database Connection", () => {
 
     expect(tables.length).toBeGreaterThan(0);
 
-    logger.info(
+    databaseLogger.info(
       `TC-02 validado correctamente: se obtuvieron [${tables.length}] tablas desde SQL Server.`,
     );
   });

@@ -4,6 +4,8 @@ import { BusinessDateModal } from "@paystudio/components/navbar/business-date-mo
 import { expect, test } from "@paystudio/fixtures";
 import { logger } from "@utils/logger";
 
+const customizationLogger = logger.child({ module: "CustomizationSpec" });
+
 /**
  * Suite de Customización
  */
@@ -30,18 +32,18 @@ test.describe("Módulo de Customización - PayStudio", () => {
     expect(businessDate).not.toBe("");
 
     if (businessDate === today) {
-      logger.info(
+      customizationLogger.info(
         `TC-01 validado: el modal de Fecha de Negocio mostró el valor [${businessDate}] y coincide con la fecha actual [${today}].`,
       );
     } else {
-      logger.warn(
+      customizationLogger.warn(
         `TC-01 validado con desviación: el modal de Fecha de Negocio mostró [${businessDate}] y no coincide con la fecha actual esperada [${today}].`,
       );
     }
 
     await modal.close();
 
-    logger.info(
+    customizationLogger.info(
       `TC-01 validado: el modal se abrió correctamente, se obtuvo un valor de fecha de negocio no vacío y se cerró el modal.`,
     );
   });
@@ -59,7 +61,7 @@ test.describe("Módulo de Customización - PayStudio", () => {
 
     await aboutModal.close();
 
-    logger.info(
+    customizationLogger.info(
       `TC-02 validado: el modal About se abrió correctamente, se obtuvo la versión [${version}] (no vacía) y se cerró el modal.`,
     );
   });
