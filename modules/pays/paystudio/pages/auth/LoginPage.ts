@@ -22,14 +22,17 @@ export class LoginPage {
 
     this.passwordInput = page.locator("[id$='LoginControl1_TextBoxPassword']");
 
-    this.loginButton = page.getByRole("button", { name: "Ingresar" });
+    this.loginButton = page.getByRole("button", {
+      name: "Ingresar",
+      exact: true,
+    });
 
     this.errorMessage = page.locator("[id$='LoginControl1_LabelError']");
 
     this.usernameError = page.locator(
       "[id$='LoginControl1_RequiredFieldValidatorUser']",
     );
-    
+
     this.passwordError = page.locator(
       "[id$='LoginControl1_RequiredFieldValidatorPassword']",
     );
