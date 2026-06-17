@@ -11,14 +11,6 @@ export const authData = {
     invalidFormatPassword: "claveinvalida",
     shortPassword: "Ab1$",
     longPassword: "Abc12345$Abc12345$Abc12345$Abc12345$Abc12345$",
-    reusedPreviousPassword: "Colombia2032*",
-  },
-
-  /**
-   * Credenciales válidas
-   */
-  validCredentials: {
-    validNewPassword: "NuevaClave123$",
   },
 
   /**

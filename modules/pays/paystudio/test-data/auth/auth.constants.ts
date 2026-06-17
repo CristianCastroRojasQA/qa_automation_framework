@@ -26,6 +26,10 @@ export const AuthMessages = {
   CHANGE_PASSWORD_ERROR_SUMMARY_TITLE: "Han ocurrido errores!",
   CHANGE_PASSWORD_REQUIRED_FIELD: "Dato requerido",
 
+  CHANGE_PASSWORD_SUCCESS_SUMMARY_TITLE: "Notificación!",
+  CHANGE_PASSWORD_SUCCESS_MESSAGE:
+    "La modificación ha sido realizada con éxito",
+
   CHANGE_PASSWORD_INVALID_CURRENT_PASSWORD:
     "La contraseña suministrada no es correcta",
 
@@ -43,4 +47,7 @@ export const AuthMessages = {
 
   CHANGE_PASSWORD_MIN_DAYS_RESTRICTION:
     "Ya has cambiado tu contraseña en los úlimos 1 días",
+
+  CHANGE_PASSWORD_REUSED_PASSWORD_HISTORY:
+    "La nueva contraseña ya fue utilizada en los últimos 12 cambios de contraseña.",
 } as const;
