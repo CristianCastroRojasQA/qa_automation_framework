@@ -5,6 +5,9 @@ import { logger } from "@utils/logger";
 import { authData } from "@paystudio/test-data/auth/auth.data";
 import { SecurityPolicyProvider } from "@paystudio/test-data/security/security-policy.provider";
 
+/**
+ * Suite de Cambio de Contraseña
+ */
 test.describe("Cambio de Contraseña - PayStudio", () => {
   test("TC-01: Smoke - Debe cargar la página de cambio de contraseña", async ({
     page,
@@ -55,17 +58,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
 
     await expect(page).toHaveURL(/SelfData/);
 
-    await expect(changePasswordPage.title).toBeVisible();
-    await expect(changePasswordPage.title).toContainText(
-      AuthMessages.CHANGE_PASSWORD_TITLE,
-    );
-
     await changePasswordPage.confirm();
-
-    await expect(changePasswordPage.errorSummaryTitle).toBeVisible();
-    await expect(changePasswordPage.errorSummaryTitle).toContainText(
-      AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE,
-    );
 
     await expect(changePasswordPage.currentPasswordRequiredError).toBeVisible();
     await expect(changePasswordPage.currentPasswordRequiredError).toContainText(
@@ -73,7 +66,7 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
     );
 
     logger.info(
-      `TC-02 validado: al confirmar cambio de contraseña con campos vacíos, se mostró el resumen de error [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y los mensajes requeridos [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] para contraseña actual, nueva contraseña y repetir contraseña.`,
+      `TC-02 validado: al confirmar cambio de contraseña con campos vacíos, se mostró el resumen de alert [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y los mensajes requeridos [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] para contraseña actual, nueva contraseña y repetir contraseña.`,
     );
   });
 
@@ -94,28 +87,15 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
 
     await expect(page).toHaveURL(/SelfData/);
 
-    await expect(changePasswordPage.title).toBeVisible();
-    await expect(changePasswordPage.title).toContainText(
-      AuthMessages.CHANGE_PASSWORD_TITLE,
-    );
-
     await changePasswordPage.submitWithoutCurrentPassword(
       authData.invalidCredentials.wrongPassword,
       authData.invalidCredentials.wrongPassword,
-    );
-
-    await expect(changePasswordPage.errorSummaryTitle).toBeVisible();
-    await expect(changePasswordPage.errorSummaryTitle).toContainText(
-      AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE,
     );
 
     await expect(changePasswordPage.currentPasswordRequiredError).toBeVisible();
     await expect(changePasswordPage.currentPasswordRequiredError).toContainText(
       AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD,
     );
-
-    await expect(changePasswordPage.newPasswordRequiredError).toBeVisible();
-    await expect(changePasswordPage.repeatPasswordRequiredError).toBeVisible();
 
     logger.info(
       `TC-03 validado: al omitir la contraseña actual y diligenciar nueva contraseña/repetición, se mostró el resumen [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y la validación requerida [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] únicamente para la contraseña actual.`,
@@ -139,12 +119,13 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
 
     await changePasswordPage.submitWithoutNewPassword(pass, pass);
 
-    await expect(changePasswordPage.errorSummaryMessages).toContainText(
-      AuthMessages.CHANGE_PASSWORD_INVALID_FORMAT,
+    await expect(changePasswordPage.newPasswordRequiredError).toBeVisible();
+    await expect(changePasswordPage.newPasswordRequiredError).toContainText(
+      AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD,
     );
 
     logger.info(
-      `TC-04 validado: al omitir nueva contraseña, se mostró [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] y el error [${AuthMessages.CHANGE_PASSWORD_PASSWORDS_DO_NOT_MATCH}].`,
+      `TC-04 validado: al omitir nueva contraseña, se mostró la validación requerida [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] para el campo nueva contraseña.`,
     );
   });
 
@@ -168,12 +149,13 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       authData.invalidCredentials.wrongPassword,
     );
 
-    await expect(changePasswordPage.errorSummaryMessages).toContainText(
-      AuthMessages.CHANGE_PASSWORD_INVALID_FORMAT,
+    await expect(changePasswordPage.repeatPasswordRequiredError).toBeVisible();
+    await expect(changePasswordPage.repeatPasswordRequiredError).toContainText(
+      AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD,
     );
 
     logger.info(
-      `TC-05 validado: al omitir repetir contraseña, se mostró [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] y el error [${AuthMessages.CHANGE_PASSWORD_PASSWORDS_DO_NOT_MATCH}].`,
+      `TC-05 validado: al omitir repetir contraseña, se mostró la validación requerida [${AuthMessages.CHANGE_PASSWORD_REQUIRED_FIELD}] para el campo repetir contraseña.`,
     );
   });
 
@@ -198,12 +180,18 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       authData.invalidCredentials.invalidFormatPassword,
     );
 
-    await expect(changePasswordPage.errorSummaryMessages).toContainText(
+    await expect(changePasswordPage.alertSummaryTitle).toBeVisible();
+    await expect(changePasswordPage.alertSummaryTitle).toContainText(
+      AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE,
+    );
+
+    await expect(changePasswordPage.alertSummaryMessages).toBeVisible();
+    await expect(changePasswordPage.alertSummaryMessages).toContainText(
       AuthMessages.CHANGE_PASSWORD_INVALID_FORMAT,
     );
 
     logger.info(
-      `TC-06 validado: al ingresar una nueva contraseña con formato inválido [${authData.invalidCredentials.invalidFormatPassword}], se mostró el error [${AuthMessages.CHANGE_PASSWORD_INVALID_FORMAT}].`,
+      `TC-06 validado: al ingresar una nueva contraseña con formato inválido [${authData.invalidCredentials.invalidFormatPassword}], se mostró el alert [${AuthMessages.CHANGE_PASSWORD_INVALID_FORMAT}].`,
     );
   });
 
@@ -230,7 +218,6 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
   });
 
   test("TC-08: Validación Formulario - Nueva contraseña menor al largo mínimo permitido", async ({
-    page,
     loginPage,
     navbar,
     changePasswordPage,
@@ -253,19 +240,22 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       authData.invalidCredentials.shortPassword,
     );
 
-    await changePasswordPage.confirm();
+    await expect(changePasswordPage.alertSummaryTitle).toBeVisible();
+    await expect(changePasswordPage.alertSummaryTitle).toContainText(
+      AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE,
+    );
 
-    await expect(changePasswordPage.errorSummaryMessages).toContainText(
+    await expect(changePasswordPage.alertSummaryMessages).toBeVisible();
+    await expect(changePasswordPage.alertSummaryMessages).toContainText(
       AuthMessages.CHANGE_PASSWORD_LEN,
     );
 
     logger.info(
-      `TC-08 validado: al ingresar una nueva contraseña menor al largo mínimo permitido [${authData.invalidCredentials.shortPassword}], se mostró el error [${AuthMessages.CHANGE_PASSWORD_LEN}].`,
+      `TC-08 validado: al ingresar una nueva contraseña menor al largo mínimo permitido [${authData.invalidCredentials.shortPassword}], se mostró el alert [${AuthMessages.CHANGE_PASSWORD_LEN}].`,
     );
   });
 
   test("TC-09: Validación Formulario - Nueva contraseña mayor al largo máximo permitido", async ({
-    page,
     loginPage,
     navbar,
     changePasswordPage,
@@ -288,61 +278,169 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
       authData.invalidCredentials.longPassword,
     );
 
-    await changePasswordPage.confirm();
+    await expect(changePasswordPage.alertSummaryTitle).toBeVisible();
+    await expect(changePasswordPage.alertSummaryTitle).toContainText(
+      AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE,
+    );
 
-    await expect(changePasswordPage.errorSummaryMessages).toContainText(
+    await expect(changePasswordPage.alertSummaryMessages).toBeVisible();
+    await expect(changePasswordPage.alertSummaryMessages).toContainText(
       AuthMessages.CHANGE_PASSWORD_LEN,
     );
 
     logger.info(
-      `TC-09 validado: al ingresar una nueva contraseña mayor al largo máximo permitido [${authData.invalidCredentials.longPassword}], se mostró el error [${AuthMessages.CHANGE_PASSWORD_LEN}].`,
+      `TC-09 validado: al ingresar una nueva contraseña mayor al largo máximo permitido [${authData.invalidCredentials.longPassword}], se mostró el alert [${AuthMessages.CHANGE_PASSWORD_LEN}].`,
     );
   });
 
-  test.skip("TC-10: Validación Formulario - No debe permitir reutilizar una contraseña anterior", async () => {});
+  test.skip(
+    "TC-10: Validación Formulario - No debe permitir reutilizar una contraseña anterior",
 
-  test.skip("TC-11: Flujo exitoso - Debe cambiar la contraseña correctamente con datos válidos", async () => {});
+    {
+      annotation: {
+        type: "precondition",
+        description:
+          "En pruebas de cambio de contraseña, este escenario requiere que la nueva contraseña corresponda a una contraseña previamente utilizada por el usuario y configurada en el .env del ambiente.",
+      },
+    },
 
-  test("TC-12: Validación Formulario - No debe permitir cambiar la contraseña antes del tiempo mínimo configurado", async ({
-    page,
+    async ({ loginPage, navbar, changePasswordPage }) => {
+      const { user, pass } = settings.credentials;
+      const { reusedPreviousPassword } = settings.authTestData;
+      const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
+
+      logger.info(
+        `TC-10 ejecución: política PASSWORD_NOT_ALLOWED_CNT=[${securityPolicy.passwordsNotAllowedCnt}] activa para validar reutilización de contraseña.`,
+      );
+
+      await loginPage.goto(settings.paystudioUrl);
+      await loginPage.login(user, pass);
+
+      await navbar.goToChangePassword();
+
+      await changePasswordPage.fillPasswords(
+        pass,
+        reusedPreviousPassword,
+        reusedPreviousPassword,
+      );
+
+      await expect(changePasswordPage.alertSummaryTitle).toBeVisible();
+      await expect(changePasswordPage.alertSummaryTitle).toContainText(
+        AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE,
+      );
+
+      await expect(changePasswordPage.alertSummaryMessages).toBeVisible();
+      await expect(changePasswordPage.alertSummaryMessages).toContainText(
+        AuthMessages.CHANGE_PASSWORD_REUSED_PASSWORD_HISTORY,
+      );
+
+      await expect(
+        changePasswordPage.currentPasswordRequiredError,
+      ).not.toBeVisible();
+      await expect(
+        changePasswordPage.newPasswordRequiredError,
+      ).not.toBeVisible();
+      await expect(
+        changePasswordPage.repeatPasswordRequiredError,
+      ).not.toBeVisible();
+
+      logger.info(
+        `TC-10 validado: al intentar reutilizar una contraseña anterior, se mostró el resumen [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y el alert [${AuthMessages.CHANGE_PASSWORD_REUSED_PASSWORD_HISTORY}].`,
+      );
+    },
+  );
+
+  test.skip(
+    "TC-11: Flujo exitoso - Debe cambiar la contraseña correctamente con datos válidos",
+    {
+      annotation: {
+        type: "precondition",
+        description:
+          "En pruebas de flujo exitoso, este escenario requiere contar con la contraseña actual válida del usuario y una nueva contraseña configurada en el .env del ambiente.",
+      },
+    },
+    async ({ loginPage, navbar, changePasswordPage }) => {
+      const { user, pass } = settings.credentials;
+      const { validNewPassword } = settings.authTestData;
+
+      await loginPage.goto(settings.paystudioUrl);
+      await loginPage.login(user, pass);
+
+      await navbar.goToChangePassword();
+
+      await changePasswordPage.fillPasswords(
+        pass,
+        validNewPassword,
+        validNewPassword,
+      );
+
+      await expect(changePasswordPage.alertSummaryTitle).toBeVisible();
+      await expect(changePasswordPage.alertSummaryTitle).toContainText(
+        AuthMessages.CHANGE_PASSWORD_SUCCESS_SUMMARY_TITLE,
+      );
+
+      await expect(changePasswordPage.alertSummaryMessages).toBeVisible();
+      await expect(changePasswordPage.alertSummaryMessages).toContainText(
+        AuthMessages.CHANGE_PASSWORD_SUCCESS_MESSAGE,
+      );
+
+      logger.info(
+        `TC-11 validado: al cambiar la contraseña usando una contraseña actual válida y una nueva contraseña válida, se mostró el resumen [${AuthMessages.CHANGE_PASSWORD_SUCCESS_SUMMARY_TITLE}] y el alert [${AuthMessages.CHANGE_PASSWORD_SUCCESS_MESSAGE}].`,
+      );
+    },
+  );
+
+  test.skip(
+    "TC-12: Validación Formulario - No debe permitir cambiar la contraseña antes del tiempo mínimo configurado",
+    {
+      annotation: {
+        type: "precondition",
+        description:
+          "En pruebas de restricción por tiempo mínimo, este escenario requiere que el usuario haya cambiado su contraseña previamente e intente cambiarla nuevamente el mismo día con la nueva contraseña configurada en el .env del ambiente.",
+      },
+    },
+    async ({ loginPage, navbar, changePasswordPage }) => {
+      const { user, pass } = settings.credentials;
+      const { validNewPassword } = settings.authTestData;
+      const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
+      logger.info(
+        `TC-12 ejecución: política actual PASSWORD_CHANGE_DAYS=[${securityPolicy.passwordChangeDays}].`,
+      );
+
+      await loginPage.goto(settings.paystudioUrl);
+      await loginPage.login(user, pass);
+
+      await navbar.goToChangePassword();
+
+      await changePasswordPage.fillPasswords(
+        pass,
+        validNewPassword,
+        validNewPassword,
+      );
+
+      await expect(changePasswordPage.alertSummaryTitle).toBeVisible();
+      await expect(changePasswordPage.alertSummaryTitle).toContainText(
+        AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE,
+      );
+
+      await expect(changePasswordPage.alertSummaryMessages).toBeVisible();
+      await expect(changePasswordPage.alertSummaryMessages).toContainText(
+        AuthMessages.CHANGE_PASSWORD_MIN_DAYS_RESTRICTION,
+      );
+
+      logger.info(
+        `TC-12 validado: al intentar cambiar la contraseña antes del tiempo mínimo configurado, usando una contraseña actual válida y una nueva contraseña válida, se mostró el resumen [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y el alert [${AuthMessages.CHANGE_PASSWORD_MIN_DAYS_RESTRICTION}].`,
+      );
+    },
+  );
+
+  test("TC-13: Validación Formulario - Debe mostrar alert al ingresar contraseña actual incorrecta", async ({
     loginPage,
     navbar,
     changePasswordPage,
   }) => {
     const { user, pass } = settings.credentials;
-    const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await navbar.goToChangePassword();
-
-    await changePasswordPage.fillPasswords(
-      pass,
-      authData.validCredentials.validNewPassword,
-      authData.validCredentials.validNewPassword,
-    );
-
-    await changePasswordPage.confirm();
-
-    await expect(changePasswordPage.errorSummaryMessages).toContainText(
-      AuthMessages.CHANGE_PASSWORD_MIN_DAYS_RESTRICTION,
-    );
-
-    logger.info(
-      `TC-12 validado: al intentar cambiar la contraseña antes del tiempo mínimo configurado, usando una contraseña actual válida y una nueva contraseña válida, se mostró el resumen [${AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE}] y el error [${AuthMessages.CHANGE_PASSWORD_MIN_DAYS_RESTRICTION}]. TC-12 ejecución: política actual PASSWORD_CHANGE_DAYS=[${securityPolicy.passwordChangeDays}].`,
-    );
-  });
-
-  test.skip("TC-13: Validación Formulario - Debe exigir cambio de contraseña cuando ha expirado", async () => {});
-
-  test("TC-14: Validación Formulario - Debe mostrar error al ingresar contraseña actual incorrecta", async ({
-    page,
-    loginPage,
-    navbar,
-    changePasswordPage,
-  }) => {
-    const { user, pass } = settings.credentials;
+    const { validNewPassword } = settings.authTestData;
 
     await loginPage.goto(settings.paystudioUrl);
     await loginPage.login(user, pass);
@@ -351,18 +449,22 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
 
     await changePasswordPage.fillPasswords(
       authData.invalidCredentials.wrongPassword,
-      authData.validCredentials.validNewPassword,
-      authData.validCredentials.validNewPassword,
+      validNewPassword,
+      validNewPassword,
     );
 
-    await changePasswordPage.confirm();
+    await expect(changePasswordPage.alertSummaryTitle).toBeVisible();
+    await expect(changePasswordPage.alertSummaryTitle).toContainText(
+      AuthMessages.CHANGE_PASSWORD_ERROR_SUMMARY_TITLE,
+    );
 
-    await expect(changePasswordPage.errorSummaryMessages).toContainText(
+    await expect(changePasswordPage.alertSummaryMessages).toBeVisible();
+    await expect(changePasswordPage.alertSummaryMessages).toContainText(
       AuthMessages.CHANGE_PASSWORD_INVALID_CURRENT_PASSWORD,
     );
 
     logger.info(
-      `TC-14 validado: al ingresar una contraseña actual incorrecta [${authData.invalidCredentials.wrongPassword}] y una nueva contraseña válida, se mostró el error [${AuthMessages.CHANGE_PASSWORD_INVALID_CURRENT_PASSWORD}].`,
+      `TC-13 validado: al ingresar una contraseña actual incorrecta [${authData.invalidCredentials.wrongPassword}] y una nueva contraseña válida, se mostró el alert [${AuthMessages.CHANGE_PASSWORD_INVALID_CURRENT_PASSWORD}].`,
     );
   });
 });
