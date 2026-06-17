@@ -3,6 +3,8 @@ import sql from "mssql";
 import { settings } from "@config/settings";
 import { logger } from "@utils/logger";
 
+const sqlLogger = logger.child({ module: "SQL" });
+
 /**
  * Cliente SQL Server: conexión y ejecución de queries.
  */
@@ -15,8 +17,8 @@ export class SqlServerClient {
       return this.pool;
     }
 
-    logger.info(
-      `[SQL] Conectando a [${settings.database.database}] en [${settings.database.server}]`,
+    sqlLogger.info(
+      `Conectando a [${settings.database.database}] en [${settings.database.server}]`,
     );
 
     this.pool = await sql.connect({
@@ -29,7 +31,7 @@ export class SqlServerClient {
       },
     });
 
-    logger.info("[SQL] Conexión OK.");
+    sqlLogger.info("Conexión OK.");
 
     return this.pool;
   }
@@ -37,18 +39,18 @@ export class SqlServerClient {
   // Ejecuta query con retorno de registros (SELECT)
   public async query<T>(queryText: string): Promise<T[]> {
     try {
-      logger.debug("[SQL] Ejecutando query.");
+      sqlLogger.debug("Ejecutando query.");
 
       const pool = await this.getPool();
       const result = await pool.request().query(queryText);
 
-      logger.info(`[SQL] OK. Registros: ${result.recordset.length}`);
+      sqlLogger.info(`OK. Registros: ${result.recordset.length}`);
 
       return result.recordset as T[];
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 
-      logger.error(`[SQL] Error: ${message}`);
+      sqlLogger.error(`Error: ${message}`);
 
       throw error;
     }
@@ -57,7 +59,7 @@ export class SqlServerClient {
   // Ejecuta sentencia sin retorno de registros (UPDATE, INSERT, DELETE)
   public async execute(queryText: string): Promise<void> {
     try {
-      logger.debug("[SQL] Ejecutando sentencia sin retorno.");
+      sqlLogger.debug("Ejecutando sentencia sin retorno.");
 
       const pool = await this.getPool();
       const result = await pool.request().query(queryText);
@@ -67,11 +69,11 @@ export class SqlServerClient {
         0,
       );
 
-      logger.info(`[SQL] OK. Filas afectadas: ${affectedRows}`);
+      sqlLogger.info(`OK. Filas afectadas: ${affectedRows}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 
-      logger.error(`[SQL] Error: ${message}`);
+      sqlLogger.error(`Error: ${message}`);
 
       throw error;
     }
@@ -84,6 +86,6 @@ export class SqlServerClient {
     await this.pool.close();
     this.pool = undefined;
 
-    logger.info("[SQL] Conexión cerrada.");
+    sqlLogger.info("Conexión cerrada.");
   }
 }
