@@ -49,7 +49,7 @@ export class Navbar {
   }
 
   /**
-   * Espera navbar listo
+   * Espera a que el Navbar esté disponible para interacción.
    */
   async waitForReady(): Promise<void> {
     await this.page.waitForLoadState("networkidle");
@@ -57,7 +57,45 @@ export class Navbar {
   }
 
   /**
-   * Abre el menú de usuario
+   * Navega por el menú principal usando click en el menú raíz,
+   * hover en los submenús y click en la opción final.
+   */
+  async navigateByMenuPath(
+    mainMenuId: string,
+    submenuIds: string[],
+    finalOptionId: string,
+  ): Promise<void> {
+    await this.waitForReady();
+
+    const mainMenu = this.page.locator(`#${mainMenuId}`);
+    await expect(mainMenu).toBeVisible();
+    await mainMenu.click();
+
+    if (submenuIds.length > 0) {
+      const firstSubmenu = this.page.locator(`#${submenuIds[0]}`);
+
+      if (!(await firstSubmenu.isVisible())) {
+        await mainMenu.hover();
+      }
+    }
+
+    for (const submenuId of submenuIds) {
+      const submenu = this.page.locator(`#${submenuId}`);
+      await expect(submenu).toBeVisible();
+      await submenu.hover();
+    }
+
+    const finalOption = this.page.locator(`#${finalOptionId}`);
+    await expect(finalOption).toBeVisible();
+    await finalOption.click({ noWaitAfter: true });
+
+    navbarLogger.info(
+      `Navegación ejecutada por menú: ${mainMenuId} > ${submenuIds.join(" > ")} > ${finalOptionId}`,
+    );
+  }
+
+  /**
+   * Abre el menú desplegable del usuario autenticado.
    */
   async openUserMenu(): Promise<void> {
     await this.waitForReady();
@@ -69,7 +107,7 @@ export class Navbar {
   }
 
   /**
-   * Abre el buscador de merchants
+   * Abre el buscador de comercios desde el Navbar.
    */
   async openMerchantSearch(): Promise<void> {
     await this.waitForReady();
@@ -83,7 +121,7 @@ export class Navbar {
   }
 
   /**
-   * Abre el modal Business Date
+   * Abre el modal de fecha de negocio desde el menú de usuario.
    */
   async openBusinessDateModal(): Promise<void> {
     await this.openUserMenu();
@@ -93,7 +131,7 @@ export class Navbar {
   }
 
   /**
-   * Navega a cambio de contraseña
+   * Navega a la pantalla de cambio de contraseña desde el menú de usuario.
    */
   async goToChangePassword(): Promise<void> {
     await this.openUserMenu();
@@ -103,7 +141,7 @@ export class Navbar {
   }
 
   /**
-   * Abre el modal About
+   * Abre el modal About desde el menú de usuario.
    */
   async openAboutModal(): Promise<void> {
     await this.openUserMenu();
@@ -113,7 +151,7 @@ export class Navbar {
   }
 
   /**
-   * Ejecuta logout
+   * Ejecuta la opción de logout desde el menú de usuario.
    */
   async logout(): Promise<void> {
     await this.openUserMenu();
