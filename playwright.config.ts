@@ -20,6 +20,14 @@ const PROJECT = process.env.PROJECT || "BPAGOS";
 const IS_CI = !!process.env.CI;
 
 /**
+ * Archivo de sesión autenticada de PayStudio.
+ *
+ * Este storageState es generado por el proyecto setup y reutilizado por
+ * las suites que requieren acceso autenticado a funcionalidades internas.
+ */
+const PAYSTUDIO_AUTH_STATE = "playwright/.auth/paystudio.json";
+
+/**
  * Configuración de ejecución de Playwright
  * resuelta a través del flujo:
  * .env -> settings -> playwright config
@@ -61,13 +69,13 @@ const sharedProjectConfig = {
  * - configuración del navegador
  */
 export default defineConfig({
-  // Directorio raíz de pruebas automatizadas
+  // Directorio raíz de pruebas automatizadas.
   testDir: "./modules",
 
-  // Ejecuta pruebas en paralelo solo si está habilitado desde .env
+  // Ejecuta pruebas en paralelo solo si está habilitado desde .env.
   fullyParallel: PLAYWRIGHT_CONFIG.parallel,
 
-  // Previene commits accidentales con pruebas marcadas como .only
+  // Previene commits accidentales con pruebas marcadas como .only.
   forbidOnly: IS_CI,
 
   // Reintenta pruebas fallidas únicamente en entorno CI.
@@ -76,7 +84,7 @@ export default defineConfig({
   // En CI se fuerza 1 worker por estabilidad.
   // Fuera de CI:
   // - si hay paralelismo, usa workers configurados
-  // - si no, ejecuta secuencialmente con 1 worker
+  // - si no, ejecuta secuencialmente con 1 worker.
   workers: IS_CI
     ? 1
     : PLAYWRIGHT_CONFIG.parallel
@@ -104,7 +112,7 @@ export default defineConfig({
     ["junit", { outputFile: "test-results/results.xml" }],
   ],
 
-  // Configuración global de ejecución
+  // Configuración global de ejecución.
   use: {
     // Captura pantallas únicamente cuando la prueba falla.
     screenshot: {
@@ -142,21 +150,102 @@ export default defineConfig({
     navigationTimeout: 30_000,
   },
 
-  // Definición de proyectos del framework
+  // Definición de proyectos del framework.
   projects: [
     {
-      name: "PayStudio",
+      name: "setup",
 
       use: {
         ...sharedProjectConfig,
         browserName: PLAYWRIGHT_CONFIG.browser,
 
-        // URL principal obtenida dinámicamente desde el sistema de configuración.
+        // URL principal de PayStudio obtenida desde settings.
         baseURL: settings.paystudioUrl,
       },
 
-      // Ejecuta únicamente pruebas asociadas al módulo PayStudio.
-      testMatch: "**/paystudio/tests/**/*.spec.ts",
+      // Ejecuta el setup encargado de crear el storageState autenticado de PayStudio.
+      testMatch: "**/paystudio/setup/**/*.setup.ts",
+    },
+
+    {
+      name: "PayStudio",
+
+      // Ejecuta primero el proyecto setup para generar la sesión autenticada.
+      dependencies: ["setup"],
+
+      use: {
+        ...sharedProjectConfig,
+        browserName: PLAYWRIGHT_CONFIG.browser,
+
+        // Reutiliza la sesión autenticada generada por auth.setup.ts.
+        storageState: PAYSTUDIO_AUTH_STATE,
+
+        // URL principal de PayStudio obtenida desde settings.
+        baseURL: settings.paystudioUrl,
+      },
+
+      // Ejecuta pruebas de PayStudio que requieren usuario autenticado.
+      testMatch: [
+        "**/paystudio/tests/smoke/**/*.spec.ts",
+        "**/paystudio/tests/regression/**/*.spec.ts",
+        "**/paystudio/tests/customization/**/*.spec.ts",
+        "**/paystudio/tests/merchant-search/**/*.spec.ts",
+        "**/paystudio/tests/auth/change-password.spec.ts",
+      ],
+    },
+
+    {
+      name: "PayStudio Auth",
+
+      use: {
+        ...sharedProjectConfig,
+        browserName: PLAYWRIGHT_CONFIG.browser,
+
+        // URL principal del login de PayStudio.
+        baseURL: settings.paystudioUrl,
+
+        // Ejecuta sin sesión autenticada para validar login, logout y seguridad de autenticación.
+        storageState: { cookies: [], origins: [] },
+      },
+
+      // Ejecuta únicamente pruebas de autenticación que deben iniciar sin sesión.
+      testMatch: "**/paystudio/tests/auth/auth.spec.ts",
+    },
+
+    {
+      name: "PayStudio Health",
+
+      use: {
+        ...sharedProjectConfig,
+        browserName: PLAYWRIGHT_CONFIG.browser,
+
+        // URL principal del login de PayStudio.
+        baseURL: settings.paystudioUrl,
+
+        // Ejecuta sin sesión autenticada para validar disponibilidad de la pantalla de login.
+        storageState: { cookies: [], origins: [] },
+      },
+
+      // Ejecuta únicamente pruebas health de PayStudio.
+      testMatch: "**/paystudio/tests/health/**/*.spec.ts",
+    },
+
+    {
+      name: "PayStudio Infrastructure",
+
+      use: {
+        ...sharedProjectConfig,
+        browserName: PLAYWRIGHT_CONFIG.browser,
+
+        // URL principal de PayStudio, disponible si alguna prueba de infraestructura la requiere.
+        baseURL: settings.paystudioUrl,
+
+        // Ejecuta sin sesión autenticada porque las pruebas de infraestructura no dependen del login UI.
+        storageState: { cookies: [], origins: [] },
+      },
+
+      // Ejecuta únicamente pruebas de infraestructura de PayStudio.
+      testMatch: "**/paystudio/tests/infrastructure/**/*.spec.ts",
     },
 
     {
