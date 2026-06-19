@@ -6,3 +6,10 @@ export const BatchMenuRoutes = {
 
   batchConsole: "BatchConsole",
 } as const;
+
+/**
+ * Patrones esperados de URL para pantallas del menú Batches.
+ */
+export const BatchMenuUrlPatterns = {
+  batchConsole: /BatchConsole/,
+} as const;

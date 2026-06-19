@@ -12,3 +12,16 @@ export const OperationMenuRoutes = {
   automaticDebitReturn: "ACMUC036_AutomaticDebitReturn",
   dailyQuadrature: "ANG_SC_DailyQuadrature",
 } as const;
+
+/**
+ * Patrones esperados de URL para pantallas del menú Operaciones.
+ */
+export const OperationMenuUrlPatterns = {
+  automaticDebitSearch: /ACMUC033_GetAutomaticDebit/,
+  acquirerFeeCollection: /ATXUC029_FeeCollectionMaintenance/,
+  paymentMaintenance: /ACMUC013_Payment_Maint/,
+  manualRefund: /ATXUC014_DevolucionManual/,
+  acquirerDisputesManagement: /GetControversy/,
+  automaticDebitReturn: /ACMUC036_AutomaticDebitReturn/,
+  dailyQuadrature: /DailyQuadrature/,
+} as const;

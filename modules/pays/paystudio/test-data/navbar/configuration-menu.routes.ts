@@ -47,3 +47,45 @@ export const ConfigurationMenuRoutes = {
     deleteAuthList: "MIUC004_DeleteAuthList",
   },
 } as const;
+
+/**
+ * Patrones esperados de URL para pantallas del menú Configuración.
+ */
+export const ConfigurationMenuUrlPatterns = {
+  acquirer: {
+    tradeAndModel: /ABCUC022_TTradeAndModel/,
+
+    terminal: {
+      addTerminal: /ABCUC023_SaveTerminal/,
+      updateTerminalSearch: /ABCUC024_UpdateTerminalSearch/,
+      massiveTerminalAdd: /ABCUC039/,
+      terminalStockSearch: /Check-Terminal-Stock/,
+    },
+
+    product: {
+      addProduct: /ABCUC025_AddProduct/,
+      modifyProduct: /ABCUC025_ModifyProduct/,
+    },
+
+    acquirerCalendar: /ABCUC015_AcqCal_Search/,
+    exchangeRate: /ABCUC016_ExchangeRate/,
+
+    settlementModel: {
+      commercialConditions: /AMUC016/,
+      promotionalCommercialConditions: /AMRUC045/,
+      commercialConditionsReport: /AMRUC047/,
+    },
+
+    economicGroup: /ABCUC046/,
+    economicActivity: /ABCUC047/,
+    mdrBrandParameters: /mdr-brand-parameters/,
+    organizationExchangeRate: /OrgExchangeRateMaint/,
+  },
+
+  authorizationRuleList: {
+    addAuthRuleList: /AddAuthorizationRuleList/,
+    updateAuthListSearch: /UpdateAuthorizationRuleListSearch/,
+    updateAuthListValueSearch: /UpdateAuthorizationRuleListValuesSearch/,
+    deleteAuthList: /DeleteAuthorizationRuleList/,
+  },
+} as const;
