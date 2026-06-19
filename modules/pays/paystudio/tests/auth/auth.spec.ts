@@ -6,6 +6,7 @@ import { expect, test } from "@paystudio/fixtures";
 import { logger } from "@utils/logger";
 import { SecurityPolicyProvider } from "@paystudio/test-data/security/security-policy.provider";
 import { UserProvider } from "@paystudio/test-data/user/user.provider";
+import { PayStudioUrlPatterns } from "@paystudio/test-data/navigation/paystudio-url.constants";
 
 const authLogger = logger.child({ module: "AuthSpec" });
 
@@ -24,7 +25,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
   }) => {
     await loginPage.goto(settings.paystudioUrl);
 
-    await expect(page).toHaveURL(/LoginPage/);
+    await expect(page).toHaveURL(PayStudioUrlPatterns.LoginPage);
     await expect(page.getByText(AuthMessages.BRAND_PAGE)).toBeVisible();
 
     authLogger.info(
@@ -41,7 +42,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await loginPage.goto(settings.paystudioUrl);
     await loginPage.login(user, pass);
 
-    await expect(page).toHaveURL(/MainPage/);
+    await expect(page).toHaveURL(PayStudioUrlPatterns.MainPage);
     await expect(page.getByText(AuthMessages.BRAND_PAGE)).toBeVisible();
 
     authLogger.info(
@@ -147,7 +148,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
       await loginPage.goto(settings.paystudioUrl);
       await loginPage.login(payload.user, payload.pass);
 
-      await expect(page).toHaveURL(/LoginPage/);
+      await expect(page).toHaveURL(PayStudioUrlPatterns.LoginPage);
 
       await expect(loginPage.errorMessage).toBeVisible();
       await expect(loginPage.errorMessage).toContainText(
@@ -166,7 +167,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await loginPage.goto(settings.paystudioUrl);
     await loginPage.login(payload.user, payload.pass);
 
-    await expect(page).toHaveURL(/LoginPage/);
+    await expect(page).toHaveURL(PayStudioUrlPatterns.LoginPage);
     await expect(loginPage.errorMessage).toBeVisible();
     await expect(loginPage.errorMessage).toContainText(
       AuthMessages.USER_NOT_FOUND,
@@ -188,7 +189,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await loginPage.goto(settings.paystudioUrl);
     await loginPage.login(user, pass);
 
-    await expect(page).toHaveURL(/MainPage/);
+    await expect(page).toHaveURL(PayStudioUrlPatterns.MainPage);
 
     await navbar.logout();
 
@@ -197,7 +198,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
       AuthMessages.LOGOUT_SUCCESS,
     );
 
-    await expect(page).toHaveURL(/LogoutPage/);
+    await expect(page).toHaveURL(PayStudioUrlPatterns.LogoutPage);
 
     authLogger.info(
       `TC-10 validado: el usuario [${user}] cerró sesión correctamente; se mostró el mensaje [${AuthMessages.LOGOUT_SUCCESS}] y se redirigió a 'LogoutPage'.`,
@@ -213,7 +214,7 @@ test.describe("Módulo de Autenticación - PayStudio", () => {
     await loginPage.goto(settings.paystudioUrl);
     await loginPage.loginWithEnter(user, pass);
 
-    await expect(page).toHaveURL(/MainPage/);
+    await expect(page).toHaveURL(PayStudioUrlPatterns.MainPage);
 
     authLogger.info(
       "TC-11 validado: autenticación mediante tecla Enter fue exitosa; se navegó correctamente a 'MainPage'.",

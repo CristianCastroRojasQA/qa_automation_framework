@@ -1,47 +1,40 @@
 import { settings } from "@config/settings";
 import { expect, test } from "@paystudio/fixtures";
-import { SmokeNavigationHelper } from "@paystudio/helpers/smoke-navigation.helper";
 import { BatchConsolePage } from "@paystudio/pages/batches/BatchConsolePage";
-import { BatchMenuRoutes } from "@paystudio/test-data/navbar/batch-menu.routes";
+import { BatchMenuRoutes, BatchMenuUrlPatterns } from "@paystudio/test-data/navbar/batch-menu.routes";
 import { BatchProcessGroups } from "@paystudio/test-data/batches/batch-console.constants";
 import { logger } from "@utils/logger";
 
 const batchSmokeLogger = logger.child({ module: "BatchConsoleSmoke" });
 
 /**
- * Suite de Consola Batch (Grupos de Procesos)
+ * Suite de SMOKE - Consola Batch (Grupos de Procesos)
  */
-test.describe("SMOKE: Navegación entre grupos de procesos en Consola Batch", () => {
-  test("SMOKE: Navegación entre grupos de procesos en Consola Batch", async ({
-    page,
-    loginPage,
-    navbar,
-  }) => {
+test.describe("SMOKE - Consola Batch | Navegación entre grupos de procesos", () => {
+  test.beforeEach(async ({ page, navbar }) => {
     test.setTimeout(120000);
 
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(settings.credentials.user, settings.credentials.pass);
-
-    await expect(page).toHaveURL(/MainPage/);
+    await page.goto(settings.paystudioUrl);
+    await navbar.waitForReady();
 
     batchSmokeLogger.info("Inicio navegación a Consola Batch");
 
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+    await navbar.navigateByMenuPath(
       BatchMenuRoutes.main,
       [],
       BatchMenuRoutes.batchConsole,
-      /BatchConsole/,
     );
 
+    await expect(page).toHaveURL(BatchMenuUrlPatterns.batchConsole);
+  });
+
+  test("TC-01: Consola Batch - Debe permitir seleccionar el grupo Transacción Adquirente", async ({
+    page,
+  }) => {
     const batchConsolePage = new BatchConsolePage(page);
 
     await expect(batchConsolePage.processGroupsTitle).toBeVisible();
 
-    /**
-     * Pantalla: Grupo Transacción Adquirente
-     */
     await batchConsolePage.selectProcessGroup(
       BatchProcessGroups.acquirerTransaction,
     );
@@ -49,10 +42,15 @@ test.describe("SMOKE: Navegación entre grupos de procesos en Consola Batch", ()
     await expect(batchConsolePage.selectedBatchGroupTitle).toContainText(
       BatchProcessGroups.acquirerTransaction,
     );
+  });
 
-    /**
-     * Pantalla: Grupo Comercial Adquirente
-     */
+  test("TC-02: Consola Batch - Debe permitir seleccionar el grupo Comercial Adquirente", async ({
+    page,
+  }) => {
+    const batchConsolePage = new BatchConsolePage(page);
+
+    await expect(batchConsolePage.processGroupsTitle).toBeVisible();
+
     await batchConsolePage.selectProcessGroup(
       BatchProcessGroups.acquirerCommercial,
     );
@@ -60,19 +58,29 @@ test.describe("SMOKE: Navegación entre grupos de procesos en Consola Batch", ()
     await expect(batchConsolePage.selectedBatchGroupTitle).toContainText(
       BatchProcessGroups.acquirerCommercial,
     );
+  });
 
-    /**
-     * Pantalla: Grupo Adquirente
-     */
+  test("TC-03: Consola Batch - Debe permitir seleccionar el grupo Adquirente", async ({
+    page,
+  }) => {
+    const batchConsolePage = new BatchConsolePage(page);
+
+    await expect(batchConsolePage.processGroupsTitle).toBeVisible();
+
     await batchConsolePage.selectProcessGroup(BatchProcessGroups.acquirer);
 
     await expect(batchConsolePage.selectedBatchGroupTitle).toContainText(
       BatchProcessGroups.acquirer,
     );
+  });
 
-    /**
-     * Pantalla: Grupo Comercio Adquirente
-     */
+  test("TC-04: Consola Batch - Debe permitir seleccionar el grupo Comercio Adquirente", async ({
+    page,
+  }) => {
+    const batchConsolePage = new BatchConsolePage(page);
+
+    await expect(batchConsolePage.processGroupsTitle).toBeVisible();
+
     await batchConsolePage.selectProcessGroup(
       BatchProcessGroups.acquirerMerchant,
     );
@@ -80,19 +88,29 @@ test.describe("SMOKE: Navegación entre grupos de procesos en Consola Batch", ()
     await expect(batchConsolePage.selectedBatchGroupTitle).toContainText(
       BatchProcessGroups.acquirerMerchant,
     );
+  });
 
-    /**
-     * Pantalla: Grupo Común
-     */
+  test("TC-05: Consola Batch - Debe permitir seleccionar el grupo Común", async ({
+    page,
+  }) => {
+    const batchConsolePage = new BatchConsolePage(page);
+
+    await expect(batchConsolePage.processGroupsTitle).toBeVisible();
+
     await batchConsolePage.selectProcessGroup(BatchProcessGroups.common);
 
     await expect(batchConsolePage.selectedBatchGroupTitle).toContainText(
       BatchProcessGroups.common,
     );
+  });
 
-    /**
-     * Pantalla: Grupo Reportes Adquirente
-     */
+  test("TC-06: Consola Batch - Debe permitir seleccionar el grupo Reportes Adquirente", async ({
+    page,
+  }) => {
+    const batchConsolePage = new BatchConsolePage(page);
+
+    await expect(batchConsolePage.processGroupsTitle).toBeVisible();
+
     await batchConsolePage.selectProcessGroup(
       BatchProcessGroups.acquirerReports,
     );
@@ -100,7 +118,9 @@ test.describe("SMOKE: Navegación entre grupos de procesos en Consola Batch", ()
     await expect(batchConsolePage.selectedBatchGroupTitle).toContainText(
       BatchProcessGroups.acquirerReports,
     );
+  });
 
+  test.afterAll(async () => {
     batchSmokeLogger.info(
       "SMOKE completado: navegación entre grupos de procesos en Consola Batch validada correctamente.",
     );

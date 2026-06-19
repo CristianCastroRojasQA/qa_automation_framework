@@ -4,6 +4,7 @@ import { expect, test } from "@paystudio/fixtures";
 import { logger } from "@utils/logger";
 import { authData } from "@paystudio/test-data/auth/auth.data";
 import { SecurityPolicyProvider } from "@paystudio/test-data/security/security-policy.provider";
+import { PayStudioUrlPatterns } from "@paystudio/test-data/navigation/paystudio-url.constants";
 
 const changePasswordLogger = logger.child({ module: "ChangePasswordSpec" });
 
@@ -11,22 +12,19 @@ const changePasswordLogger = logger.child({ module: "ChangePasswordSpec" });
  * Suite de Cambio de Contraseña
  */
 test.describe("Cambio de Contraseña - PayStudio", () => {
-  test("TC-01: Smoke - Debe cargar la página de cambio de contraseña", async ({
-    page,
-    loginPage,
-    navbar,
-    changePasswordPage,
-  }) => {
-    const { user, pass } = settings.credentials;
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await expect(page).toHaveURL(/MainPage/);
+  test.beforeEach(async ({ page, navbar }) => {
+    await page.goto(settings.paystudioUrl);
+    await navbar.waitForReady();
 
     await navbar.goToChangePassword();
 
-    await expect(page).toHaveURL(/SelfData/);
+    await expect(page).toHaveURL(PayStudioUrlPatterns.SelfData);
+  });
+
+  test("TC-01: Smoke - Debe cargar la página de cambio de contraseña", async ({
+    changePasswordPage,
+  }) => {
+    const { user } = settings.credentials;
 
     await expect(changePasswordPage.title).toBeVisible();
     await expect(changePasswordPage.title).toContainText(
@@ -44,22 +42,8 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
   });
 
   test("TC-02: Validación Formulario - Campos obligatorios vacíos", async ({
-    page,
-    loginPage,
-    navbar,
     changePasswordPage,
   }) => {
-    const { user, pass } = settings.credentials;
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await expect(page).toHaveURL(/MainPage/);
-
-    await navbar.goToChangePassword();
-
-    await expect(page).toHaveURL(/SelfData/);
-
     await changePasswordPage.confirm();
 
     await expect(changePasswordPage.currentPasswordRequiredError).toBeVisible();
@@ -73,22 +57,8 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
   });
 
   test("TC-03: Validación Formulario - Falta contraseña actual", async ({
-    page,
-    loginPage,
-    navbar,
     changePasswordPage,
   }) => {
-    const { user, pass } = settings.credentials;
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await expect(page).toHaveURL(/MainPage/);
-
-    await navbar.goToChangePassword();
-
-    await expect(page).toHaveURL(/SelfData/);
-
     await changePasswordPage.submitWithoutCurrentPassword(
       authData.invalidCredentials.wrongPassword,
       authData.invalidCredentials.wrongPassword,
@@ -105,19 +75,9 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
   });
 
   test("TC-04: Validación Formulario - Falta nueva contraseña", async ({
-    page,
-    loginPage,
-    navbar,
     changePasswordPage,
   }) => {
-    const { user, pass } = settings.credentials;
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await expect(page).toHaveURL(/MainPage/);
-
-    await navbar.goToChangePassword();
+    const { pass } = settings.credentials;
 
     await changePasswordPage.submitWithoutNewPassword(pass, pass);
 
@@ -132,19 +92,9 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
   });
 
   test("TC-05: Validación Formulario - Falta repetir contraseña", async ({
-    page,
-    loginPage,
-    navbar,
     changePasswordPage,
   }) => {
-    const { user, pass } = settings.credentials;
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await expect(page).toHaveURL(/MainPage/);
-
-    await navbar.goToChangePassword();
+    const { pass } = settings.credentials;
 
     await changePasswordPage.submitWithoutRepeatPassword(
       pass,
@@ -162,19 +112,9 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
   });
 
   test("TC-06: Validación Formulario - Nueva contraseña con formato inválido", async ({
-    page,
-    loginPage,
-    navbar,
     changePasswordPage,
   }) => {
-    const { user, pass } = settings.credentials;
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await expect(page).toHaveURL(/MainPage/);
-
-    await navbar.goToChangePassword();
+    const { pass } = settings.credentials;
 
     await changePasswordPage.fillPasswords(
       pass,
@@ -199,42 +139,26 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
 
   test("TC-07: Navegación - Debe redirigir a la página principal al hacer clic en cancelar", async ({
     page,
-    loginPage,
-    navbar,
     changePasswordPage,
   }) => {
-    const { user, pass } = settings.credentials;
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await navbar.goToChangePassword();
-
     await changePasswordPage.cancel();
 
-    await expect(page).toHaveURL(/MainPage/);
+    await expect(page).toHaveURL(PayStudioUrlPatterns.MainPage);
 
     changePasswordLogger.info(
-      `TC-07 validado: al hacer clic en cancelar desde la página de cambio de contraseña, se redirigió correctamente a la página principal, la URL contiene [MainPage].`,
+      "TC-07 validado: al hacer clic en cancelar desde la página de cambio de contraseña, se redirigió correctamente a la página principal, la URL contiene [MainPage].",
     );
   });
 
   test("TC-08: Validación Formulario - Nueva contraseña menor al largo mínimo permitido", async ({
-    loginPage,
-    navbar,
     changePasswordPage,
   }) => {
-    const { user, pass } = settings.credentials;
+    const { pass } = settings.credentials;
     const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
 
     changePasswordLogger.info(
       `TC-08 ejecución: política actual MIN_PASSWORD=[${securityPolicy.minPassword}] y valor de prueba utilizado=[${authData.invalidCredentials.shortPassword.length}] caracteres.`,
     );
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await navbar.goToChangePassword();
 
     await changePasswordPage.fillPasswords(
       pass,
@@ -258,21 +182,14 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
   });
 
   test("TC-09: Validación Formulario - Nueva contraseña mayor al largo máximo permitido", async ({
-    loginPage,
-    navbar,
     changePasswordPage,
   }) => {
-    const { user, pass } = settings.credentials;
+    const { pass } = settings.credentials;
     const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
 
     changePasswordLogger.info(
       `TC-09 ejecución: política actual MAX_PASSWORD=[${securityPolicy.maxPassword}] y valor de prueba utilizado=[${authData.invalidCredentials.longPassword.length}] caracteres.`,
     );
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await navbar.goToChangePassword();
 
     await changePasswordPage.fillPasswords(
       pass,
@@ -297,7 +214,6 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
 
   test.skip(
     "TC-10: Validación Formulario - No debe permitir reutilizar una contraseña anterior",
-
     {
       annotation: {
         type: "precondition",
@@ -305,20 +221,14 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
           "En pruebas de cambio de contraseña, este escenario requiere que la nueva contraseña corresponda a una contraseña previamente utilizada por el usuario y configurada en el .env del ambiente.",
       },
     },
-
-    async ({ loginPage, navbar, changePasswordPage }) => {
-      const { user, pass } = settings.credentials;
+    async ({ changePasswordPage }) => {
+      const { pass } = settings.credentials;
       const { reusedPreviousPassword } = settings.authTestData;
       const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
 
       changePasswordLogger.info(
         `TC-10 ejecución: política PASSWORD_NOT_ALLOWED_CNT=[${securityPolicy.passwordsNotAllowedCnt}] activa para validar reutilización de contraseña.`,
       );
-
-      await loginPage.goto(settings.paystudioUrl);
-      await loginPage.login(user, pass);
-
-      await navbar.goToChangePassword();
 
       await changePasswordPage.fillPasswords(
         pass,
@@ -361,14 +271,9 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
           "En pruebas de flujo exitoso, este escenario requiere contar con la contraseña actual válida del usuario y una nueva contraseña configurada en el .env del ambiente.",
       },
     },
-    async ({ loginPage, navbar, changePasswordPage }) => {
-      const { user, pass } = settings.credentials;
+    async ({ changePasswordPage }) => {
+      const { pass } = settings.credentials;
       const { validNewPassword } = settings.authTestData;
-
-      await loginPage.goto(settings.paystudioUrl);
-      await loginPage.login(user, pass);
-
-      await navbar.goToChangePassword();
 
       await changePasswordPage.fillPasswords(
         pass,
@@ -401,19 +306,14 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
           "En pruebas de restricción por tiempo mínimo, este escenario requiere que el usuario haya cambiado su contraseña previamente e intente cambiarla nuevamente el mismo día con la nueva contraseña configurada en el .env del ambiente.",
       },
     },
-    async ({ loginPage, navbar, changePasswordPage }) => {
-      const { user, pass } = settings.credentials;
+    async ({ changePasswordPage }) => {
+      const { pass } = settings.credentials;
       const { validNewPassword } = settings.authTestData;
       const securityPolicy = await SecurityPolicyProvider.getSecurityPolicy();
 
       changePasswordLogger.info(
         `TC-12 ejecución: política actual PASSWORD_CHANGE_DAYS=[${securityPolicy.passwordChangeDays}].`,
       );
-
-      await loginPage.goto(settings.paystudioUrl);
-      await loginPage.login(user, pass);
-
-      await navbar.goToChangePassword();
 
       await changePasswordPage.fillPasswords(
         pass,
@@ -438,17 +338,9 @@ test.describe("Cambio de Contraseña - PayStudio", () => {
   );
 
   test("TC-13: Validación Formulario - Debe mostrar alert al ingresar contraseña actual incorrecta", async ({
-    loginPage,
-    navbar,
     changePasswordPage,
   }) => {
-    const { user, pass } = settings.credentials;
     const { validNewPassword } = settings.authTestData;
-
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(user, pass);
-
-    await navbar.goToChangePassword();
 
     await changePasswordPage.fillPasswords(
       authData.invalidCredentials.wrongPassword,

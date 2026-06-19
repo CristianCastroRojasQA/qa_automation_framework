@@ -10,12 +10,9 @@ const customizationLogger = logger.child({ module: "CustomizationSpec" });
  * Suite de Customización
  */
 test.describe("Módulo de Customización - PayStudio", () => {
-  test.beforeEach(async ({ page, loginPage }) => {
-    await loginPage.goto(settings.paystudioUrl);
-
-    await loginPage.login(settings.credentials.user, settings.credentials.pass);
-
-    await expect(page).toHaveURL(/MainPage/);
+  test.beforeEach(async ({ page, navbar }) => {
+    await page.goto(settings.paystudioUrl);
+    await navbar.waitForReady();
   });
 
   test("TC-01: Customización - Debe mostrar la fecha de negocio igual a la fecha actual", async ({
@@ -37,14 +34,14 @@ test.describe("Módulo de Customización - PayStudio", () => {
       );
     } else {
       customizationLogger.warn(
-        `TC-01 validado con desviación: el modal de Fecha de Negocio mostró [${businessDate}] y no coincide con la fecha actual esperada [${today}].`,
+        `TC-01 validado con desviación: el modal mostró [${businessDate}] y no coincide con [${today}].`,
       );
     }
 
     await modal.close();
 
     customizationLogger.info(
-      `TC-01 validado: el modal se abrió correctamente, se obtuvo un valor de fecha de negocio no vacío y se cerró el modal.`,
+      "TC-01 validado: modal abierto, fecha obtenida y cerrado correctamente.",
     );
   });
 
@@ -62,7 +59,7 @@ test.describe("Módulo de Customización - PayStudio", () => {
     await aboutModal.close();
 
     customizationLogger.info(
-      `TC-02 validado: el modal About se abrió correctamente, se obtuvo la versión [${version}] (no vacía) y se cerró el modal.`,
+      `TC-02 validado: modal About abierto, versión obtenida [${version}] y cerrado correctamente.`,
     );
   });
 });

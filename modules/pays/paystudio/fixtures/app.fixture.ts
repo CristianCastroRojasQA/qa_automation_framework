@@ -5,6 +5,7 @@ import { LogoutPage } from "@paystudio/pages/auth/LogoutPage";
 import { SessionInvalidPage } from "@paystudio/pages/auth/SessionInvalidPage";
 import { Navbar } from "@paystudio/components/navbar/navbar";
 import { ChangePasswordPage } from "@paystudio/pages/auth/ChangePasswordPage";
+import { BatchConsolePage } from "@paystudio/pages/batches/BatchConsolePage";
 
 /**
  * Fixtures de App (Auth + Navbar)
@@ -15,6 +16,7 @@ type AppFixtures = {
   sessionInvalidPage: SessionInvalidPage;
   navbar: Navbar;
   changePasswordPage: ChangePasswordPage;
+  batchConsolePage: BatchConsolePage;
 };
 
 export const test = base.extend<AppFixtures>({
@@ -44,6 +46,13 @@ export const test = base.extend<AppFixtures>({
    */
   changePasswordPage: async ({ page }, use) => {
     await use(new ChangePasswordPage(page));
+  },
+
+  /**
+   * Provee BatchConsolePage
+   */
+  batchConsolePage: async ({ page }, use) => {
+    await use(new BatchConsolePage(page));
   },
 
   /**

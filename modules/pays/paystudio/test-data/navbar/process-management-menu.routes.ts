@@ -7,3 +7,11 @@ export const ProcessManagementMenuRoutes = {
   executions: "GridExecutions",
   definitions: "GridDefinitions",
 } as const;
+
+/**
+ * Patrones esperados de URL para pantallas del menú Gestor de Procesos.
+ */
+export const ProcessManagementMenuUrlPatterns = {
+  executions: /GridExecutions/,
+  definitions: /GridDefinitions/,
+} as const;

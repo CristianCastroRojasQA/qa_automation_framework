@@ -1,96 +1,107 @@
 import { settings } from "@config/settings";
 import { expect, test } from "@paystudio/fixtures";
-import { SmokeNavigationHelper } from "@paystudio/helpers/smoke-navigation.helper";
-import { MerchantMenuRoutes } from "@paystudio/test-data/navbar/merchant-menu.routes";
+import {
+  MerchantMenuRoutes,
+  MerchantMenuUrlPatterns,
+} from "@paystudio/test-data/navbar/merchant-menu.routes";
 import { logger } from "@utils/logger";
 
 const merchantSmokeLogger = logger.child({ module: "MerchantSmoke" });
 
 /**
- * Suite de navegación del módulo Comercios
+ * Suite de SMOKE - Módulo Comercios
  */
-test.describe("SMOKE: Navegación completa Comercios", () => {
-  test("SMOKE: Navegación completa Comercios", async ({
-    page,
-    loginPage,
-    navbar,
-  }) => {
+test.describe("SMOKE - Comercios | Navegación de pantallas", () => {
+  test.beforeEach(async ({ page, navbar }) => {
     test.setTimeout(120000);
 
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(settings.credentials.user, settings.credentials.pass);
-
-    await expect(page).toHaveURL(/MainPage/);
+    await page.goto(settings.paystudioUrl);
+    await navbar.waitForReady();
 
     merchantSmokeLogger.info("Inicio navegación módulo Comercios");
+  });
 
-    /**
-     * Pantalla: Consulta de Comercios y Sucursales
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+  test("TC-01: Comercios - Debe navegar a Consulta de Comercios y Sucursales", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       MerchantMenuRoutes.main,
       [],
       MerchantMenuRoutes.merchantSearch,
-      /AMUC008_MerchantSearch/,
     );
 
-    /**
-     * Pantalla: Alta de Comercio
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+    await expect(page).toHaveURL(MerchantMenuUrlPatterns.merchantSearch);
+  });
+
+  test("TC-02: Comercios - Debe navegar a Alta de Comercio", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       MerchantMenuRoutes.main,
       [],
       MerchantMenuRoutes.merchantAdd,
-      /AMUC002_MerchantAdd/,
     );
 
-    /**
-     * Pantalla: Mantenimiento Preafiliación Comercio
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+    await expect(page).toHaveURL(MerchantMenuUrlPatterns.merchantAdd);
+  });
+
+  test("TC-03: Comercios - Debe navegar a Mantenimiento de Preafiliación de Comercio", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       MerchantMenuRoutes.main,
       [],
       MerchantMenuRoutes.merchantPreAffiliationMaintenance,
-      /AMDUC002_MerchantDataEntrySearch/,
     );
 
-    /**
-     * Pantalla: Consulta de Transacciones
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+    await expect(page).toHaveURL(
+      MerchantMenuUrlPatterns.merchantPreAffiliationMaintenance,
+    );
+  });
+
+  test("TC-04: Comercios - Debe navegar a Consulta de Transacciones", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       MerchantMenuRoutes.main,
       [],
       MerchantMenuRoutes.acquirerTransactionInfo,
-      /ATXUC012_AcquirerTransactionInfo/,
     );
 
-    /**
-     * Pantalla: Alta Preafiliación Comercio
-     */
-    test.info().annotations.push({
-      type: "note",
-      description:
-        "La pantalla Alta Preafiliación Comercio se valida al final porque puede cambiar el contexto de navegación.",
-    });
-
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
-      MerchantMenuRoutes.main,
-      [],
-      MerchantMenuRoutes.merchantPreAffiliationAdd,
-      /AMDUC001_MerchantDataEntryAdd/,
+    await expect(page).toHaveURL(
+      MerchantMenuUrlPatterns.acquirerTransactionInfo,
     );
+  });
 
-    merchantSmokeLogger.info("SMOKE completado: navegación Comercios OK");
+  test(
+    "TC-05: Comercios - Debe navegar a Alta de Preafiliación de Comercio",
+    {
+      annotation: {
+        type: "note",
+        description:
+          "En pruebas de navegación del módulo Comercios, este escenario se valida al final porque la pantalla Alta Preafiliación Comercio puede cambiar el contexto de navegación.",
+      },
+    },
+    async ({ page, navbar }) => {
+      await navbar.navigateByMenuPath(
+        MerchantMenuRoutes.main,
+        [],
+        MerchantMenuRoutes.merchantPreAffiliationAdd,
+      );
+
+      await expect(page).toHaveURL(
+        MerchantMenuUrlPatterns.merchantPreAffiliationAdd,
+      );
+    },
+  );
+
+  test.afterAll(async () => {
+    merchantSmokeLogger.info(
+      "SMOKE completado: navegación Comercios validada correctamente.",
+    );
   });
 });
-``;
