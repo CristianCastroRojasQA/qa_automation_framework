@@ -1,113 +1,139 @@
 import { settings } from "@config/settings";
 import { expect, test } from "@paystudio/fixtures";
-import { SmokeNavigationHelper } from "@paystudio/helpers/smoke-navigation.helper";
-import { OperationMenuRoutes } from "@paystudio/test-data/navbar/operation-menu.routes";
+import {
+  OperationMenuRoutes,
+  OperationMenuUrlPatterns,
+} from "@paystudio/test-data/navbar/operation-menu.routes";
 import { logger } from "@utils/logger";
 
 const operationSmokeLogger = logger.child({ module: "OperationSmoke" });
 
+const isGetnetCert =
+  settings.project === "GETNET" && settings.environment === "CERT";
+
 /**
- * Suite de navegación del módulo Operaciones
+ * Suite de SMOKE - Módulo Operaciones
  */
-test.describe("SMOKE: Navegación completa Operaciones", () => {
-  test("SMOKE: Navegación completa Operaciones", async ({
-    page,
-    loginPage,
-    navbar,
-  }) => {
+test.describe("SMOKE - Operaciones | Navegación de pantallas", () => {
+  test.beforeEach(async ({ page, navbar }) => {
     test.setTimeout(120000);
 
-    await loginPage.goto(settings.paystudioUrl);
-    await loginPage.login(settings.credentials.user, settings.credentials.pass);
-
-    await expect(page).toHaveURL(/MainPage/);
+    await page.goto(settings.paystudioUrl);
+    await navbar.waitForReady();
 
     operationSmokeLogger.info("Inicio navegación módulo Operaciones");
+  });
 
-    /**
-     * Pantalla: Consulta Débitos Automáticos
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+  test("TC-01: Operaciones - Debe navegar a Consulta de Débitos Automáticos", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       OperationMenuRoutes.main,
       [],
       OperationMenuRoutes.automaticDebitSearch,
-      /ACMUC033_GetAutomaticDebit/,
     );
 
-    /**
-     * Pantalla: Mantenimiento Fee Collection Adquirente
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+    await expect(page).toHaveURL(OperationMenuUrlPatterns.automaticDebitSearch);
+  });
+
+  test("TC-02: Operaciones - Debe navegar a Mantenimiento de Fee Collection Adquirente", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       OperationMenuRoutes.main,
       [],
       OperationMenuRoutes.acquirerFeeCollection,
-      /ATXUC029_FeeCollectionMaintenance/,
     );
 
-    /**
-     * Pantalla: Mantenimiento Pagos
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+    await expect(page).toHaveURL(
+      OperationMenuUrlPatterns.acquirerFeeCollection,
+    );
+  });
+
+  test("TC-03: Operaciones - Debe navegar a Mantenimiento de Pagos", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       OperationMenuRoutes.main,
       [],
       OperationMenuRoutes.paymentMaintenance,
-      /ACMUC013_Payment_Maint/,
     );
 
-    /**
-     * Pantalla: Devolución Manual
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+    await expect(page).toHaveURL(OperationMenuUrlPatterns.paymentMaintenance);
+  });
+
+  test("TC-04: Operaciones - Debe navegar a Devolución Manual", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       OperationMenuRoutes.main,
       [],
       OperationMenuRoutes.manualRefund,
-      /ATXUC014_DevolucionManual/,
     );
 
-    /**
-     * Pantalla: Administración Disputas Adquirente
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+    await expect(page).toHaveURL(OperationMenuUrlPatterns.manualRefund);
+  });
+
+  test("TC-05: Operaciones - Debe navegar a Administración de Disputas Adquirente", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       OperationMenuRoutes.main,
       [],
       OperationMenuRoutes.acquirerDisputesManagement,
-      /GetControversy/,
     );
 
-    /**
-     * Pantalla: Devolución Débitos Automáticos
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
+    await expect(page).toHaveURL(
+      OperationMenuUrlPatterns.acquirerDisputesManagement,
+    );
+  });
+
+  test("TC-06: Operaciones - Debe navegar a Devolución de Débitos Automáticos", async ({
+    page,
+    navbar,
+  }) => {
+    await navbar.navigateByMenuPath(
       OperationMenuRoutes.main,
       [],
       OperationMenuRoutes.automaticDebitReturn,
-      /ACMUC036_AutomaticDebitReturn/,
     );
 
-    /**
-     * Pantalla: Cuadratura
-     */
-    await SmokeNavigationHelper.navigateByMenuPath(
-      page,
-      navbar,
-      OperationMenuRoutes.main,
-      [],
-      OperationMenuRoutes.dailyQuadrature,
-      /DailyQuadrature/,
-    );
+    await expect(page).toHaveURL(OperationMenuUrlPatterns.automaticDebitReturn);
+  });
 
-    operationSmokeLogger.info("SMOKE completado: navegación Operaciones OK");
+  test(
+    "TC-07: Operaciones - Debe navegar a Cuadratura",
+    {
+      annotation: {
+        type: "note",
+        description:
+          "En pruebas de navegación del módulo Operaciones, este escenario no aplica para GETNET CERT ya que la pantalla Cuadratura no está disponible en ese ambiente.",
+      },
+    },
+    async ({ page, navbar }) => {
+      test.skip(
+        isGetnetCert,
+        "TC-07 no aplica para GETNET CERT: Cuadratura no está disponible.",
+      );
+
+      await navbar.navigateByMenuPath(
+        OperationMenuRoutes.main,
+        [],
+        OperationMenuRoutes.dailyQuadrature,
+      );
+
+      await expect(page).toHaveURL(OperationMenuUrlPatterns.dailyQuadrature);
+    },
+  );
+
+  test.afterAll(async () => {
+    operationSmokeLogger.info(
+      "SMOKE completado: navegación Operaciones validada correctamente.",
+    );
   });
 });
